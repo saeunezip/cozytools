@@ -229,6 +229,44 @@
       .event-item:last-child {
         border-bottom: none;
       }
+
+      /* 진행중인 이벤트 (버튼 형식) */
+      .ongoing-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .ongoing-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 13px;
+        border: 1.5px solid #eceff1;
+        border-radius: 12px;
+        background: #fbfbfc;
+      }
+      .ongoing-dot {
+        flex: none;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .ongoing-name {
+        flex: 1;
+        min-width: 0;
+        font-size: 13.5px;
+        font-weight: bold;
+        color: #152c57;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ongoing-period {
+        flex: none;
+        font-size: 11.5px;
+        color: #90a4ae;
+        font-weight: bold;
+      }
       .event-dot {
         flex: none;
         width: 9px;
@@ -301,6 +339,11 @@
       </div>
 
       <div class="panel">
+        <div class="desc" style="margin-bottom: 8px">진행중인 이벤트</div>
+        <div class="ongoing-list" id="ongoingList"></div>
+      </div>
+
+      <div class="panel">
         <div class="month-nav">
           <button onclick="shiftMonth(-1)" aria-label="이전 달">‹</button>
           <span class="month-label" id="monthLabel"></span>
@@ -354,6 +397,7 @@
       function normalizeEvent(raw) {
         if (raw.type === "weekly") {
           return {
+            id: raw.id,
             title: raw.title,
             repeat: "weekly",
             weekdayStart: Number(raw.weekdayStart),
@@ -362,6 +406,7 @@
           };
         }
         return {
+          id: raw.id,
           title: raw.title,
           start: String(raw.start).slice(0, 10),
           end: String(raw.end).slice(0, 10),
@@ -374,16 +419,22 @@
         render();
         document.getElementById("eventList").innerHTML =
           '<div class="empty-msg">일정을 불러오는 중...</div>';
+        document.getElementById("ongoingList").innerHTML =
+          '<div class="empty-msg">불러오는 중...</div>';
 
         try {
           const res = await fetch(API_URL);
           const data = await res.json();
           if (!data.ok) throw new Error(data.error || "불러오기 실패");
           EVENTS = (data.events || []).map(normalizeEvent);
+          assignColors(EVENTS);
           render();
+          renderOngoing();
         } catch (err) {
           document.getElementById("eventList").innerHTML =
             '<div class="empty-msg">일정을 불러오지 못했어요. 잠시 후 새로고침해 주세요.</div>';
+          document.getElementById("ongoingList").innerHTML =
+            '<div class="empty-msg">불러오지 못했어요.</div>';
         }
       }
 
@@ -396,11 +447,28 @@
         "#B45FC0",
         "#D9698B",
         "#5FAF6B",
+        "#C77B3F",
+        "#4FA8C9",
+        "#9C6ADE",
+        "#7A9C3F",
       ];
-      function colorFor(title) {
-        let h = 0;
-        for (let i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) >>> 0;
-        return PALETTE[h % PALETTE.length];
+      const WEEKDAY_LABEL = ["일", "월", "화", "수", "목", "금", "토"];
+
+      // 같은 이벤트는 항상 같은 색, 화면에 같이 뜨는 이벤트끼리는 색이 안 겹치게
+      // (해시 대신 등장 순서대로 팔레트를 순서대로 배정)
+      let COLOR_MAP = {};
+      function assignColors(events) {
+        COLOR_MAP = {};
+        let i = 0;
+        events.forEach(function (ev) {
+          if (!(ev.id in COLOR_MAP)) {
+            COLOR_MAP[ev.id] = PALETTE[i % PALETTE.length];
+            i++;
+          }
+        });
+      }
+      function colorFor(id) {
+        return COLOR_MAP[id] || PALETTE[0];
       }
 
       function toDateOnly(d) {
@@ -467,38 +535,71 @@
         return cells;
       }
 
-      /* 주어진 기간과 겹치는 occurrence 목록 생성 (반복 일정은 개별 날짜로 펼침) */
+      /* 주어진 기간과 겹치는 occurrence 목록 생성.
+         매주 반복 일정은 캘린더/이번달 일정에는 안 띄우고 "진행중인 이벤트"에서만 보여주기로
+         했으므로 여기서는 단일/기간 일정만 다룸 (renderOngoing 참고). */
       function getOccurrences(rangeStart, rangeEnd) {
         const occ = [];
         EVENTS.forEach(function (ev) {
-          if (ev.repeat === "weekly") {
-            const span = (ev.weekdayEnd - ev.weekdayStart + 7) % 7; // 시작 요일 이후 며칠 더 이어지는지
-            let cur = addDays(rangeStart, (ev.weekdayStart - rangeStart.getDay() + 7) % 7);
-            while (cur <= rangeEnd) {
-              occ.push({
-                title: ev.title,
-                start: cur,
-                end: addDays(cur, span),
-                desc: ev.desc,
-                color: colorFor(ev.title),
-              });
-              cur = addDays(cur, 7);
-            }
-          } else {
-            const s = parseYMD(ev.start),
-              e = parseYMD(ev.end);
-            if (e >= rangeStart && s <= rangeEnd) {
-              occ.push({
-                title: ev.title,
-                start: s,
-                end: e,
-                desc: ev.desc,
-                color: colorFor(ev.title),
-              });
-            }
+          if (ev.repeat === "weekly") return;
+          const s = parseYMD(ev.start),
+            e = parseYMD(ev.end);
+          if (e >= rangeStart && s <= rangeEnd) {
+            occ.push({
+              title: ev.title,
+              start: s,
+              end: e,
+              desc: ev.desc,
+              color: colorFor(ev.id),
+            });
           }
         });
         return occ;
+      }
+
+      /* 오늘 기준으로 "진행중인" 이벤트: 단일/기간은 오늘이 기간 안에 있을 때,
+         매주 반복은 항상(요일 무관하게 상시 안내용으로) 포함 */
+      function renderOngoing() {
+        const items = [];
+        EVENTS.forEach(function (ev) {
+          if (ev.repeat === "weekly") {
+            const period =
+              ev.weekdayStart === ev.weekdayEnd
+                ? "매주 " + WEEKDAY_LABEL[ev.weekdayStart] + "요일"
+                : "매주 " + WEEKDAY_LABEL[ev.weekdayStart] + "~" + WEEKDAY_LABEL[ev.weekdayEnd] + "요일";
+            items.push({ id: ev.id, title: ev.title, period: period, color: colorFor(ev.id) });
+          } else {
+            const s = parseYMD(ev.start),
+              e = parseYMD(ev.end);
+            if (today >= s && today <= e) {
+              const period = fmtYMD(s).slice(5).replace("-", ".") + " ~ " + fmtYMD(e).slice(5).replace("-", ".");
+              items.push({ id: ev.id, title: ev.title, period: period, color: colorFor(ev.id) });
+            }
+          }
+        });
+
+        const box = document.getElementById("ongoingList");
+        if (!items.length) {
+          box.innerHTML = '<div class="empty-msg">진행중인 이벤트가 없습니다.</div>';
+          return;
+        }
+        box.innerHTML = items
+          .map(function (it) {
+            return (
+              '<div class="ongoing-btn">' +
+              '<span class="ongoing-dot" style="background:' +
+              it.color +
+              '"></span>' +
+              '<span class="ongoing-name">' +
+              it.title +
+              "</span>" +
+              '<span class="ongoing-period">' +
+              it.period +
+              "</span>" +
+              "</div>"
+            );
+          })
+          .join("");
       }
 
       /* 전체 표시 기간 기준으로 레인(줄) 배정 — 같은 이벤트는 주가 바뀌어도 같은 줄 유지 */
