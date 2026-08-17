@@ -7,7 +7,7 @@
 사이트 자체(`index.html`/`calc.html`/`calendar.html`/`register.html`)는 빌드 없는 순수 정적 웹페이지(HTML/CSS/JS)로, GitHub Pages로 배포한다.
 guild-flower와 스택·리포지토리·배포 흐름 전부 다르다.
 
-**단, 캘린더 일정 저장만은 예외** — [cozytools-backend](../cozytools-backend)라는 **cozytools 전용** Apps Script+구글시트가 따로 있다. guild-flower의 스크립트/시트와는 무관한 새 프로젝트. 자세한 내용은 그 폴더의 `CLAUDE.md` 참고.
+**단, 캘린더 일정 저장만은 예외** — [cozytools-worker](../cozytools-worker)라는 **cozytools 전용** Cloudflare Workers 백엔드가 따로 있다 (2026-08-18부터. 원래 Apps Script로 만들었던 [cozytools-backend](../cozytools-backend)는 너무 느려서 대체함 — 그 폴더는 폐기 상태로 보관만 함). guild-flower의 스크립트/시트와는 완전히 무관. 자세한 내용은 `cozytools-worker/CLAUDE.md` 참고.
 
 ---
 
@@ -17,7 +17,7 @@ guild-flower와 스택·리포지토리·배포 흐름 전부 다르다.
 |---|---|
 | `index.html` | 허브 페이지 — 도구 목록 |
 | `calc.html` | 길드전 임무 횟수 계산기 |
-| `calendar.html` | 이벤트 캘린더 — `cozytools-backend`에서 fetch로 실시간 로드 |
+| `calendar.html` | 이벤트 캘린더 — `cozytools-worker`에서 fetch로 실시간 로드 |
 | `register.html` | 일정 등록/삭제 (비밀번호 게이트). **사이트 어디에도 링크 안 걸어둠 — 주소를 아는 사람만 접근.** `index.html`에 카드 추가하지 말 것 |
 | `범용도구사이트-구상.md` | 이 사이트의 목표·전략, 앞으로 만들 도구 아이디어 목록 |
 
@@ -45,12 +45,12 @@ guild-flower의 `Calc.html`(Apps Script 템플릿, 길드 앱 안에서 `?page=c
 
 ## calendar.html / register.html — 실제로 저장됨
 
-**2026-08-18부터 실사용 상태.** `calendar.html`은 더 이상 하드코딩 배열을 안 쓰고, `cozytools-backend`(Apps Script) `GET /exec`를 fetch해서 이벤트를 불러온다. `register.html`이 같은 백엔드에 `POST /exec`로 등록/삭제한다.
+**2026-08-18부터 실사용 상태.** `calendar.html`은 더 이상 하드코딩 배열을 안 쓰고, `cozytools-worker`(Cloudflare Workers) `GET /`을 fetch해서 이벤트를 불러온다. `register.html`이 같은 백엔드에 `POST /`로 등록/삭제한다. (처음엔 Apps Script로 만들었다가 콜드스타트가 너무 느려서 같은 날 Cloudflare Workers로 옮김 — `cozytools-worker/CLAUDE.md` 참고.)
 
 - 여러 날짜에 걸친 일정은 달력에서 이어진 막대로 표시됨 (주가 바뀌어도 같은 줄 유지)
-- 단일/기간 일정, 매주 반복 일정 둘 다 지원
-- `register.html`은 비밀번호(백엔드 Script Properties에 저장, 코드엔 없음)로 게이트 — 링크를 아는 사람만 접근, 사이트 내 어디서도 링크 안 걸어둠
-- 백엔드 API 주소(`API_URL`)는 `calendar.html`/`register.html` 양쪽에 하드코딩돼 있음. 백엔드 재배포해도 배포 ID 고정해서 하면 이 주소는 안 바뀜 (`cozytools-backend/CLAUDE.md` 참고) — 안 바뀌었으면 이 두 파일은 손댈 필요 없음
+- 단일/기간 일정, 매주 반복 일정(요일 범위, 예: 금~월) 둘 다 지원
+- `register.html`은 비밀번호(Worker Secret에 저장, 코드엔 없음)로 게이트 — 링크를 아는 사람만 접근, 사이트 내 어디서도 링크 안 걸어둠
+- 백엔드 API 주소(`API_URL`)는 `calendar.html`/`register.html` 양쪽에 하드코딩돼 있음 (`https://cozytools-backend.saeunezip.workers.dev`). Worker는 `wrangler deploy` 한 번이면 같은 주소로 갱신되니 이 두 파일을 손댈 일은 거의 없음
 
 guild-flower 폴더의 `기능-이벤트캘린더.md`에는 guild-flower 자체에 Admin+시트로 통합하는 다른(더 예전) 설계가 남아있는데, **이 cozytools 버전으로 대체됐다고 보면 됨** — 굳이 guild-flower 쪽에 또 만들 필요 없음.
 
