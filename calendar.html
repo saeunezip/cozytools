@@ -25,7 +25,7 @@
         color: #263238;
       }
       .container {
-        max-width: 640px;
+        max-width: 760px;
         margin: auto;
       }
 
@@ -60,7 +60,7 @@
       .panel {
         background: #fff;
         border-radius: 14px;
-        padding: 16px;
+        padding: 14px 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         margin-bottom: 14px;
       }
@@ -86,7 +86,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
+        padding: 0 4px;
       }
       .month-nav button {
         background: #eceff1;
@@ -122,18 +123,18 @@
         background: #eceff1;
       }
 
-      /* 달력 그리드 */
+      /* 요일 헤더 */
       .weekday-row {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        margin-bottom: 4px;
+        margin-bottom: 2px;
       }
       .weekday-row span {
         text-align: center;
-        font-size: 11.5px;
+        font-size: 11px;
         font-weight: bold;
         color: #90a4ae;
-        padding: 4px 0;
+        padding: 2px 0 6px;
       }
       .weekday-row span:first-child {
         color: #e57373;
@@ -142,54 +143,80 @@
         color: #64b5f6;
       }
 
-      .cal-grid {
+      /* 달력 — 주 단위 스트립 */
+      .week-strip {
+        border-top: 1px solid #f0f1f3;
+        padding-top: 3px;
+      }
+      .week-strip:first-child {
+        border-top: none;
+      }
+      .daynum-row {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 3px;
       }
-      .cal-cell {
-        aspect-ratio: 1 / 1;
-        border-radius: 8px;
-        padding: 4px 3px;
-        background: #fbfbfc;
-        border: 1px solid #f0f1f3;
-        cursor: default;
+      .daynum-cell {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        overflow: hidden;
+        justify-content: center;
+        padding: 2px 0;
       }
-      .cal-cell.empty {
-        background: transparent;
-        border-color: transparent;
-      }
-      .cal-cell .dnum {
-        font-size: 12px;
+      .daynum-cell span {
+        font-size: 11.5px;
         font-weight: bold;
         color: #546e7a;
-      }
-      .cal-cell.today {
-        border: 2px solid #1f3b73;
-      }
-      .cal-cell.today .dnum {
-        color: #1f3b73;
-      }
-      .cal-cell .dots {
-        display: flex;
-        gap: 2px;
-        margin-top: 3px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .dot {
-        width: 6px;
-        height: 6px;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        text-align: center;
         border-radius: 50%;
+      }
+      .daynum-cell.out span {
+        color: #d3d8db;
+        font-weight: normal;
+      }
+      .daynum-cell.sun span {
+        color: #e57373;
+      }
+      .daynum-cell.sat span {
+        color: #64b5f6;
+      }
+      .daynum-cell.today span {
         background: #1f3b73;
+        color: #fff !important;
       }
 
-      /* 이벤트 목록 */
+      .bars-area {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-auto-rows: 17px;
+        gap: 2px 2px;
+        margin-top: 2px;
+        margin-bottom: 4px;
+      }
+      .event-bar {
+        color: #fff;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 2px 6px;
+        line-height: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-radius: 6px;
+      }
+      .event-bar.cont-left {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        margin-left: -2px;
+        padding-left: 4px;
+      }
+      .event-bar.cont-right {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-right: -2px;
+      }
+
+      /* 이벤트 목록 (모바일 등 막대 텍스트가 잘릴 때 참고용) */
       .event-list {
         margin-top: 4px;
       }
@@ -202,6 +229,13 @@
       .event-item:last-child {
         border-bottom: none;
       }
+      .event-dot {
+        flex: none;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        margin-top: 5px;
+      }
       .event-date {
         flex: none;
         width: 76px;
@@ -209,6 +243,10 @@
         color: #90a4ae;
         font-weight: bold;
         line-height: 1.5;
+      }
+      .event-body {
+        flex: 1;
+        min-width: 0;
       }
       .event-body .ename {
         font-size: 14px;
@@ -237,6 +275,17 @@
       }
       .footer-note a {
         color: #90a4ae;
+      }
+
+      @media (max-width: 420px) {
+        .bars-area {
+          grid-auto-rows: 15px;
+        }
+        .event-bar {
+          font-size: 9px;
+          padding: 1px 4px;
+          line-height: 12px;
+        }
       }
     </style>
   </head>
@@ -272,7 +321,7 @@
           ><span>목</span><span>금</span><span>토</span>
         </div>
 
-        <div class="cal-grid" id="calGrid"></div>
+        <div id="calGrid"></div>
       </div>
 
       <div class="panel">
@@ -288,9 +337,14 @@
 
     <script>
       /* ==========================================================
-         이벤트 데이터 (초안 — 시트 연동 없이 이 배열을 직접 수정합니다)
-         날짜는 'YYYY-MM-DD' 형식. end는 하루짜리 이벤트면 start와 동일하게.
-         실제 이벤트로 바꾸려면 아래 배열 내용만 고치고 다시 업로드하세요.
+         이벤트 데이터 (초안 — 아직 등록 페이지/서버 연결 전이라
+         이 배열을 직접 수정하는 방식입니다. 날짜는 'YYYY-MM-DD'.)
+
+         단일/기간 일정:
+           { title, start, end, desc }
+         매주 반복 일정:
+           { title, repeat: 'weekly', weekday: 0~6(일~토), desc,
+             repeatFrom(선택), repeatUntil(선택) }
          ========================================================== */
       const EVENTS = [
         {
@@ -305,7 +359,29 @@
           end: "2026-09-03",
           desc: "예시 데이터입니다 — 실제 일정으로 교체해 주세요.",
         },
+        {
+          title: "(예시) 주간 출석 이벤트",
+          repeat: "weekly",
+          weekday: 1, // 월요일
+          desc: "매주 반복 일정 예시입니다.",
+        },
       ];
+
+      const PALETTE = [
+        "#6C63C7",
+        "#E0757A",
+        "#3FA796",
+        "#E3A23C",
+        "#4A90D9",
+        "#B45FC0",
+        "#D9698B",
+        "#5FAF6B",
+      ];
+      function colorFor(title) {
+        let h = 0;
+        for (let i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) >>> 0;
+        return PALETTE[h % PALETTE.length];
+      }
 
       function toDateOnly(d) {
         return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -322,6 +398,12 @@
           "-" +
           String(d.getDate()).padStart(2, "0")
         );
+      }
+      function addDays(d, n) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+      }
+      function diffDays(a, b) {
+        return Math.round((a - b) / 86400000);
       }
 
       const today = toDateOnly(new Date());
@@ -346,87 +428,185 @@
         render();
       }
 
-      function eventsOnDay(d) {
-        return EVENTS.filter(function (ev) {
-          const s = parseYMD(ev.start),
-            e = parseYMD(ev.end);
-          return d >= s && d <= e;
+      /* 이번 달 그리드에 필요한 날짜 칸(앞뒤 달 패딩 포함, 7의 배수) */
+      function buildGridCells(year, month) {
+        const firstDay = new Date(year, month, 1);
+        const startWeekday = firstDay.getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const cells = [];
+        for (let i = startWeekday; i > 0; i--) {
+          cells.push({ date: addDays(firstDay, -i), inMonth: false });
+        }
+        for (let d = 1; d <= daysInMonth; d++) {
+          cells.push({ date: new Date(year, month, d), inMonth: true });
+        }
+        while (cells.length % 7 !== 0) {
+          const last = cells[cells.length - 1].date;
+          cells.push({ date: addDays(last, 1), inMonth: false });
+        }
+        return cells;
+      }
+
+      /* 주어진 기간과 겹치는 occurrence 목록 생성 (반복 일정은 개별 날짜로 펼침) */
+      function getOccurrences(rangeStart, rangeEnd) {
+        const occ = [];
+        EVENTS.forEach(function (ev) {
+          if (ev.repeat === "weekly") {
+            let cur = addDays(rangeStart, (ev.weekday - rangeStart.getDay() + 7) % 7);
+            const from = ev.repeatFrom ? parseYMD(ev.repeatFrom) : null;
+            const until = ev.repeatUntil ? parseYMD(ev.repeatUntil) : null;
+            while (cur <= rangeEnd) {
+              if ((!from || cur >= from) && (!until || cur <= until)) {
+                occ.push({
+                  title: ev.title,
+                  start: cur,
+                  end: cur,
+                  desc: ev.desc,
+                  color: colorFor(ev.title),
+                });
+              }
+              cur = addDays(cur, 7);
+            }
+          } else {
+            const s = parseYMD(ev.start),
+              e = parseYMD(ev.end);
+            if (e >= rangeStart && s <= rangeEnd) {
+              occ.push({
+                title: ev.title,
+                start: s,
+                end: e,
+                desc: ev.desc,
+                color: colorFor(ev.title),
+              });
+            }
+          }
         });
+        return occ;
+      }
+
+      /* 전체 표시 기간 기준으로 레인(줄) 배정 — 같은 이벤트는 주가 바뀌어도 같은 줄 유지 */
+      function assignLanes(occurrences) {
+        const sorted = occurrences.slice().sort(function (a, b) {
+          return a.start - b.start || b.end - b.start - (a.end - a.start);
+        });
+        const laneEndDates = [];
+        sorted.forEach(function (o) {
+          let lane = laneEndDates.findIndex(function (endDate) {
+            return endDate < o.start;
+          });
+          if (lane === -1) {
+            lane = laneEndDates.length;
+            laneEndDates.push(o.end);
+          } else {
+            laneEndDates[lane] = o.end;
+          }
+          o.lane = lane;
+        });
+        return sorted;
       }
 
       function render() {
         document.getElementById("monthLabel").textContent =
           viewYear + "년 " + (viewMonth + 1) + "월";
 
-        const firstDay = new Date(viewYear, viewMonth, 1);
-        const startWeekday = firstDay.getDay(); // 0=일
-        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        const cells = buildGridCells(viewYear, viewMonth);
+        const rangeStart = cells[0].date;
+        const rangeEnd = cells[cells.length - 1].date;
+        const occurrences = assignLanes(getOccurrences(rangeStart, rangeEnd));
 
         const grid = document.getElementById("calGrid");
-        let html = "";
+        grid.innerHTML = "";
 
-        for (let i = 0; i < startWeekday; i++) {
-          html += '<div class="cal-cell empty"></div>';
+        for (let w = 0; w < cells.length; w += 7) {
+          const week = cells.slice(w, w + 7);
+          const weekStart = week[0].date;
+          const weekEnd = week[6].date;
+
+          const strip = document.createElement("div");
+          strip.className = "week-strip";
+
+          const daynumRow = document.createElement("div");
+          daynumRow.className = "daynum-row";
+          week.forEach(function (cell, i) {
+            const isToday = cell.date.getTime() === today.getTime();
+            const cls = ["daynum-cell"];
+            if (!cell.inMonth) cls.push("out");
+            if (i === 0) cls.push("sun");
+            if (i === 6) cls.push("sat");
+            if (isToday) cls.push("today");
+            const div = document.createElement("div");
+            div.className = cls.join(" ");
+            div.innerHTML = "<span>" + cell.date.getDate() + "</span>";
+            daynumRow.appendChild(div);
+          });
+          strip.appendChild(daynumRow);
+
+          const weekOcc = occurrences.filter(function (o) {
+            return o.end >= weekStart && o.start <= weekEnd;
+          });
+
+          if (weekOcc.length) {
+            const barsArea = document.createElement("div");
+            barsArea.className = "bars-area";
+            weekOcc.forEach(function (o) {
+              const startCol = Math.max(0, diffDays(o.start, weekStart));
+              const endCol = Math.min(6, diffDays(o.end, weekStart));
+              const bar = document.createElement("div");
+              const clsList = ["event-bar"];
+              if (o.start < weekStart) clsList.push("cont-left");
+              if (o.end > weekEnd) clsList.push("cont-right");
+              bar.className = clsList.join(" ");
+              bar.style.gridColumn = (startCol + 1) + " / " + (endCol + 2);
+              bar.style.gridRow = String(o.lane + 1);
+              bar.style.background = o.color;
+              bar.textContent = o.title;
+              bar.title = o.title + (o.desc ? " — " + o.desc : "");
+              barsArea.appendChild(bar);
+            });
+            strip.appendChild(barsArea);
+          }
+
+          grid.appendChild(strip);
         }
 
-        for (let day = 1; day <= daysInMonth; day++) {
-          const d = new Date(viewYear, viewMonth, day);
-          const isToday = d.getTime() === today.getTime();
-          const evs = eventsOnDay(d);
-          const dots = evs
-            .slice(0, 4)
-            .map(function () {
-              return '<span class="dot"></span>';
-            })
-            .join("");
-
-          html +=
-            '<div class="cal-cell' +
-            (isToday ? " today" : "") +
-            '"><span class="dnum">' +
-            day +
-            "</span>" +
-            (evs.length ? '<div class="dots">' + dots + "</div>" : "") +
-            "</div>";
-        }
-
-        grid.innerHTML = html;
-
-        // 이번 달과 겹치는 이벤트만, 시작일 순으로
+        // 이번 달과 겹치는 일정 목록 (막대 텍스트가 잘릴 때 참고용)
         const monthStart = new Date(viewYear, viewMonth, 1);
         const monthEnd = new Date(viewYear, viewMonth + 1, 0);
-        const monthEvents = EVENTS.filter(function (ev) {
-          const s = parseYMD(ev.start),
-            e = parseYMD(ev.end);
-          return e >= monthStart && s <= monthEnd;
-        }).sort(function (a, b) {
-          return parseYMD(a.start) - parseYMD(b.start);
-        });
+        const monthOcc = occurrences
+          .filter(function (o) {
+            return o.end >= monthStart && o.start <= monthEnd;
+          })
+          .sort(function (a, b) {
+            return a.start - b.start;
+          });
 
         const listBox = document.getElementById("eventList");
-        if (!monthEvents.length) {
+        if (!monthOcc.length) {
           listBox.innerHTML =
             '<div class="empty-msg">이번 달 등록된 일정이 없습니다.</div>';
           return;
         }
 
-        listBox.innerHTML = monthEvents
-          .map(function (ev) {
+        listBox.innerHTML = monthOcc
+          .map(function (o) {
+            const s = fmtYMD(o.start),
+              e = fmtYMD(o.end);
             const dateLabel =
-              ev.start === ev.end
-                ? ev.start.slice(5).replace("-", ".")
-                : ev.start.slice(5).replace("-", ".") +
-                  " ~ " +
-                  ev.end.slice(5).replace("-", ".");
+              s === e
+                ? s.slice(5).replace("-", ".")
+                : s.slice(5).replace("-", ".") + " ~ " + e.slice(5).replace("-", ".");
             return (
               '<div class="event-item">' +
+              '<span class="event-dot" style="background:' +
+              o.color +
+              '"></span>' +
               '<div class="event-date">' +
               dateLabel +
               "</div>" +
               '<div class="event-body"><div class="ename">' +
-              ev.title +
+              o.title +
               '</div><div class="edesc">' +
-              (ev.desc || "") +
+              (o.desc || "") +
               "</div></div>" +
               "</div>"
             );
