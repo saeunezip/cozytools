@@ -343,9 +343,9 @@
          내부 표현(fetch 후 normalizeEvent로 변환):
          단일/기간 일정:
            { title, start, end, desc }
-         매주 반복 일정:
-           { title, repeat: 'weekly', weekday: 0~6(일~토), desc,
-             repeatFrom(선택), repeatUntil(선택) }
+         매주 반복 일정 (예: 매주 금~월):
+           { title, repeat: 'weekly', weekdayStart, weekdayEnd (0~6, 일~토), desc }
+           weekdayEnd < weekdayStart 면 주를 넘겨서 이어지는 것으로 취급 (금~월 등)
          ========================================================== */
       const API_URL =
         "https://script.google.com/macros/s/AKfycbyFKDHsSLJUZAB8pBMQjRv5qjIEWXjbPqmRqxqPzEtkc6I6i1tAbGsk3R1oILbWcA_d/exec";
@@ -357,9 +357,8 @@
           return {
             title: raw.title,
             repeat: "weekly",
-            weekday: Number(raw.weekday),
-            repeatFrom: raw.repeatFrom ? String(raw.repeatFrom).slice(0, 10) : "",
-            repeatUntil: raw.repeatUntil ? String(raw.repeatUntil).slice(0, 10) : "",
+            weekdayStart: Number(raw.weekdayStart),
+            weekdayEnd: Number(raw.weekdayEnd),
             desc: raw.desc,
           };
         }
@@ -469,19 +468,16 @@
         const occ = [];
         EVENTS.forEach(function (ev) {
           if (ev.repeat === "weekly") {
-            let cur = addDays(rangeStart, (ev.weekday - rangeStart.getDay() + 7) % 7);
-            const from = ev.repeatFrom ? parseYMD(ev.repeatFrom) : null;
-            const until = ev.repeatUntil ? parseYMD(ev.repeatUntil) : null;
+            const span = (ev.weekdayEnd - ev.weekdayStart + 7) % 7; // 시작 요일 이후 며칠 더 이어지는지
+            let cur = addDays(rangeStart, (ev.weekdayStart - rangeStart.getDay() + 7) % 7);
             while (cur <= rangeEnd) {
-              if ((!from || cur >= from) && (!until || cur <= until)) {
-                occ.push({
-                  title: ev.title,
-                  start: cur,
-                  end: cur,
-                  desc: ev.desc,
-                  color: colorFor(ev.title),
-                });
-              }
+              occ.push({
+                title: ev.title,
+                start: cur,
+                end: addDays(cur, span),
+                desc: ev.desc,
+                color: colorFor(ev.title),
+              });
               cur = addDays(cur, 7);
             }
           } else {

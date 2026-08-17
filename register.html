@@ -274,26 +274,33 @@
 
           <!-- 매주 반복 필드 -->
           <div id="weeklyFields" class="hidden">
-            <div class="field">
-              <label>반복 요일</label>
-              <select id="fWeekday">
-                <option value="0">일요일</option>
-                <option value="1" selected>월요일</option>
-                <option value="2">화요일</option>
-                <option value="3">수요일</option>
-                <option value="4">목요일</option>
-                <option value="5">금요일</option>
-                <option value="6">토요일</option>
-              </select>
+            <div class="desc" style="margin-bottom: 8px">
+              매주 이 요일부터 저 요일까지 반복돼요 (하루짜리면 시작·종료를 같은 요일로 선택).
             </div>
             <div class="field-row">
               <div class="field">
-                <label>반복 시작일 (선택)</label>
-                <input type="date" id="fRepeatFrom" />
+                <label>시작 요일</label>
+                <select id="fWeekdayStart">
+                  <option value="0">일요일</option>
+                  <option value="1" selected>월요일</option>
+                  <option value="2">화요일</option>
+                  <option value="3">수요일</option>
+                  <option value="4">목요일</option>
+                  <option value="5">금요일</option>
+                  <option value="6">토요일</option>
+                </select>
               </div>
               <div class="field">
-                <label>반복 종료일 (선택)</label>
-                <input type="date" id="fRepeatUntil" />
+                <label>종료 요일</label>
+                <select id="fWeekdayEnd">
+                  <option value="0">일요일</option>
+                  <option value="1" selected>월요일</option>
+                  <option value="2">화요일</option>
+                  <option value="3">수요일</option>
+                  <option value="4">목요일</option>
+                  <option value="5">금요일</option>
+                  <option value="6">토요일</option>
+                </select>
               </div>
             </div>
           </div>
@@ -363,9 +370,8 @@
           body.start = start;
           body.end = end < start ? start : end;
         } else {
-          body.weekday = document.getElementById("fWeekday").value;
-          body.repeatFrom = document.getElementById("fRepeatFrom").value;
-          body.repeatUntil = document.getElementById("fRepeatUntil").value;
+          body.weekdayStart = document.getElementById("fWeekdayStart").value;
+          body.weekdayEnd = document.getElementById("fWeekdayEnd").value;
         }
 
         const btn = document.getElementById("submitBtn");
@@ -381,8 +387,6 @@
             document.getElementById("fDesc").value = "";
             document.getElementById("fStart").value = "";
             document.getElementById("fEnd").value = "";
-            document.getElementById("fRepeatFrom").value = "";
-            document.getElementById("fRepeatUntil").value = "";
             loadEvents();
           } else {
             showMsg("submitMsg", data.error || "등록에 실패했습니다.", false);
@@ -425,12 +429,12 @@
           .map(function (ev) {
             let meta;
             if (ev.type === "weekly") {
+              const ws = Number(ev.weekdayStart),
+                we = Number(ev.weekdayEnd);
               meta =
-                "매주 " +
-                WEEKDAY_LABEL[Number(ev.weekday)] +
-                "요일" +
-                (ev.repeatFrom ? " · " + String(ev.repeatFrom).slice(0, 10) + "부터" : "") +
-                (ev.repeatUntil ? " · " + String(ev.repeatUntil).slice(0, 10) + "까지" : "");
+                ws === we
+                  ? "매주 " + WEEKDAY_LABEL[ws] + "요일"
+                  : "매주 " + WEEKDAY_LABEL[ws] + "~" + WEEKDAY_LABEL[we] + "요일";
             } else {
               meta = String(ev.start).slice(0, 10) + " ~ " + String(ev.end).slice(0, 10);
             }
