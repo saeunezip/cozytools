@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>일정 등록 · 코지 도구 모음</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Malgun Gothic", sans-serif;
+        margin: 0;
+        padding: 16px 10px 40px;
+        background: #f7f7f8;
+        color: #263238;
+      }
+      .container {
+        max-width: 640px;
+        margin: auto;
+      }
+
+      .header-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .title {
+        color: #152c57;
+        margin: 0;
+        font-size: 21px;
+      }
+      .nav-btn {
+        background: #1f3b73;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-weight: bold;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .panel {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 14px;
+      }
+      .panel h3 {
+        margin: 0 0 10px;
+        font-size: 15.5px;
+        color: #152c57;
+      }
+      .desc {
+        font-size: 12.5px;
+        color: #90a4ae;
+        margin: 0 0 14px;
+        line-height: 1.6;
+      }
+
+      .field {
+        margin-bottom: 12px;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: bold;
+        color: #546e7a;
+        margin-bottom: 5px;
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #dfe3e6;
+        border-radius: 9px;
+        font-size: 15px;
+        outline: none;
+        font-family: inherit;
+      }
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus {
+        border-color: #1f3b73;
+      }
+      .field textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+      .field-row {
+        display: flex;
+        gap: 10px;
+      }
+      .field-row .field {
+        flex: 1;
+      }
+
+      .type-toggle {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .type-toggle button {
+        flex: 1;
+        padding: 10px;
+        border-radius: 9px;
+        border: 2px solid #eceff1;
+        background: #fbfbfc;
+        color: #546e7a;
+        font-weight: bold;
+        font-size: 13.5px;
+        cursor: pointer;
+      }
+      .type-toggle button.on {
+        border-color: #1f3b73;
+        background: #f3f6fc;
+        color: #1f3b73;
+      }
+
+      .btn {
+        background: #1f3b73;
+        color: #fff;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 9px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn:hover {
+        filter: brightness(0.94);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .btn-danger {
+        background: #e0757a;
+      }
+      .btn-ghost {
+        background: none;
+        border: 1px solid #dfe3e6;
+        color: #78909c;
+        font-weight: bold;
+        font-size: 12.5px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .msg {
+        font-size: 13px;
+        font-weight: bold;
+        padding: 10px 13px;
+        border-radius: 10px;
+        margin-top: 10px;
+      }
+      .msg.ok {
+        background: #e6f4ea;
+        color: #1e7d34;
+      }
+      .msg.err {
+        background: #ffebee;
+        color: #b71c1c;
+      }
+
+      .gate {
+        text-align: center;
+        padding: 30px 10px;
+      }
+      .gate input {
+        max-width: 220px;
+        margin: 14px auto;
+        display: block;
+        text-align: center;
+        font-size: 18px;
+        letter-spacing: 2px;
+      }
+
+      .event-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid #eceff1;
+      }
+      .event-row:last-child {
+        border-bottom: none;
+      }
+      .event-row .body {
+        flex: 1;
+        min-width: 0;
+      }
+      .event-row .ename {
+        font-size: 14px;
+        font-weight: bold;
+        color: #152c57;
+      }
+      .event-row .emeta {
+        font-size: 12px;
+        color: #90a4ae;
+        margin-top: 2px;
+      }
+      .event-row .edesc {
+        font-size: 12.5px;
+        color: #78909c;
+        margin-top: 2px;
+      }
+      .empty-msg {
+        text-align: center;
+        color: #90a4ae;
+        font-size: 13px;
+        padding: 14px 0;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-area">
+        <h2 class="title">일정 등록</h2>
+        <a href="index.html" class="nav-btn">도구 모음</a>
+      </div>
+
+      <!-- 비밀번호 게이트 -->
+      <div class="panel gate" id="gatePanel">
+        <div class="desc" style="margin-bottom: 0">관리자 비밀번호를 입력해 주세요.</div>
+        <input type="password" id="pwInput" inputmode="numeric" placeholder="비밀번호" />
+        <button class="btn" style="max-width: 220px; margin: 0 auto" onclick="unlock()">확인</button>
+        <div id="gateMsg"></div>
+      </div>
+
+      <!-- 등록/관리 화면 -->
+      <div id="mainArea" class="hidden">
+        <div class="panel">
+          <h3>새 일정 등록</h3>
+
+          <div class="type-toggle">
+            <button id="typeBtnSingle" class="on" onclick="setType('single')">단일/기간 일정</button>
+            <button id="typeBtnWeekly" onclick="setType('weekly')">매주 반복 일정</button>
+          </div>
+
+          <div class="field">
+            <label>제목</label>
+            <input type="text" id="fTitle" placeholder="예: 길드전" />
+          </div>
+
+          <!-- 단일/기간 일정 필드 -->
+          <div id="singleFields">
+            <div class="field-row">
+              <div class="field">
+                <label>시작일</label>
+                <input type="date" id="fStart" />
+              </div>
+              <div class="field">
+                <label>종료일</label>
+                <input type="date" id="fEnd" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 매주 반복 필드 -->
+          <div id="weeklyFields" class="hidden">
+            <div class="field">
+              <label>반복 요일</label>
+              <select id="fWeekday">
+                <option value="0">일요일</option>
+                <option value="1" selected>월요일</option>
+                <option value="2">화요일</option>
+                <option value="3">수요일</option>
+                <option value="4">목요일</option>
+                <option value="5">금요일</option>
+                <option value="6">토요일</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>반복 시작일 (선택)</label>
+                <input type="date" id="fRepeatFrom" />
+              </div>
+              <div class="field">
+                <label>반복 종료일 (선택)</label>
+                <input type="date" id="fRepeatUntil" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>설명 (선택)</label>
+            <textarea id="fDesc" placeholder="상세 내용"></textarea>
+          </div>
+
+          <button class="btn" id="submitBtn" onclick="submitEvent()">등록</button>
+          <div id="submitMsg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>등록된 일정 (<span id="countLabel">0</span>개)</h3>
+          <div id="eventList"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbyFKDHsSLJUZAB8pBMQjRv5qjIEWXjbPqmRqxqPzEtkc6I6i1tAbGsk3R1oILbWcA_d/exec";
+
+      let pw = "";
+      let curType = "single";
+      const WEEKDAY_LABEL = ["일", "월", "화", "수", "목", "금", "토"];
+
+      function unlock() {
+        const val = document.getElementById("pwInput").value;
+        if (!val) return;
+        pw = val;
+        document.getElementById("gatePanel").classList.add("hidden");
+        document.getElementById("mainArea").classList.remove("hidden");
+        loadEvents();
+      }
+
+      function setType(type) {
+        curType = type;
+        document.getElementById("typeBtnSingle").classList.toggle("on", type === "single");
+        document.getElementById("typeBtnWeekly").classList.toggle("on", type === "weekly");
+        document.getElementById("singleFields").classList.toggle("hidden", type !== "single");
+        document.getElementById("weeklyFields").classList.toggle("hidden", type !== "weekly");
+      }
+
+      function showMsg(elId, text, ok) {
+        const el = document.getElementById(elId);
+        el.innerHTML = '<div class="msg ' + (ok ? "ok" : "err") + '">' + text + "</div>";
+      }
+
+      async function submitEvent() {
+        const title = document.getElementById("fTitle").value.trim();
+        if (!title) {
+          showMsg("submitMsg", "제목을 입력해 주세요.", false);
+          return;
+        }
+
+        const body = { action: "add", pw: pw, title: title, type: curType, desc: document.getElementById("fDesc").value.trim() };
+
+        if (curType === "single") {
+          const start = document.getElementById("fStart").value;
+          const end = document.getElementById("fEnd").value;
+          if (!start || !end) {
+            showMsg("submitMsg", "시작일/종료일을 입력해 주세요.", false);
+            return;
+          }
+          body.start = start;
+          body.end = end < start ? start : end;
+        } else {
+          body.weekday = document.getElementById("fWeekday").value;
+          body.repeatFrom = document.getElementById("fRepeatFrom").value;
+          body.repeatUntil = document.getElementById("fRepeatUntil").value;
+        }
+
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.textContent = "등록 중...";
+
+        try {
+          const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(body) });
+          const data = await res.json();
+          if (data.ok) {
+            showMsg("submitMsg", "등록했습니다.", true);
+            document.getElementById("fTitle").value = "";
+            document.getElementById("fDesc").value = "";
+            document.getElementById("fStart").value = "";
+            document.getElementById("fEnd").value = "";
+            document.getElementById("fRepeatFrom").value = "";
+            document.getElementById("fRepeatUntil").value = "";
+            loadEvents();
+          } else {
+            showMsg("submitMsg", data.error || "등록에 실패했습니다.", false);
+          }
+        } catch (err) {
+          showMsg("submitMsg", "서버에 연결하지 못했습니다: " + err.message, false);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "등록";
+        }
+      }
+
+      async function loadEvents() {
+        const box = document.getElementById("eventList");
+        box.innerHTML = '<div class="empty-msg">불러오는 중...</div>';
+        try {
+          const res = await fetch(API_URL);
+          const data = await res.json();
+          if (!data.ok) throw new Error(data.error || "목록을 불러오지 못했습니다.");
+          renderEvents(data.events || []);
+        } catch (err) {
+          box.innerHTML = '<div class="msg err">불러오기 실패: ' + err.message + "</div>";
+        }
+      }
+
+      function renderEvents(events) {
+        document.getElementById("countLabel").textContent = events.length;
+        const box = document.getElementById("eventList");
+        if (!events.length) {
+          box.innerHTML = '<div class="empty-msg">등록된 일정이 없습니다.</div>';
+          return;
+        }
+
+        events
+          .sort(function (a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+
+        box.innerHTML = events
+          .map(function (ev) {
+            let meta;
+            if (ev.type === "weekly") {
+              meta =
+                "매주 " +
+                WEEKDAY_LABEL[Number(ev.weekday)] +
+                "요일" +
+                (ev.repeatFrom ? " · " + String(ev.repeatFrom).slice(0, 10) + "부터" : "") +
+                (ev.repeatUntil ? " · " + String(ev.repeatUntil).slice(0, 10) + "까지" : "");
+            } else {
+              meta = String(ev.start).slice(0, 10) + " ~ " + String(ev.end).slice(0, 10);
+            }
+            return (
+              '<div class="event-row">' +
+              '<div class="body">' +
+              '<div class="ename">' +
+              escapeHtml(ev.title) +
+              "</div>" +
+              '<div class="emeta">' +
+              meta +
+              "</div>" +
+              (ev.desc ? '<div class="edesc">' + escapeHtml(ev.desc) + "</div>" : "") +
+              "</div>" +
+              '<button class="btn-ghost" onclick="removeEvent(\'' +
+              ev.id +
+              "')\">삭제</button>" +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      function escapeHtml(s) {
+        const div = document.createElement("div");
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      async function removeEvent(id) {
+        if (!confirm("이 일정을 삭제할까요?")) return;
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "delete", pw: pw, id: id }),
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            alert(data.error || "삭제에 실패했습니다.");
+            return;
+          }
+          loadEvents();
+        } catch (err) {
+          alert("서버에 연결하지 못했습니다: " + err.message);
+        }
+      }
+
+      document.getElementById("pwInput").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") unlock();
+      });
+    </script>
+  </body>
+</html>

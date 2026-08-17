@@ -297,7 +297,7 @@
       </div>
 
       <div class="info-box">
-        준비 중인 페이지예요 (초안). 게임 이벤트·업데이트 일정을 여기 한눈에 모아둘 예정입니다.
+        게임 이벤트·업데이트 일정을 한눈에 모아봐요.
       </div>
 
       <div class="panel">
@@ -337,35 +337,52 @@
 
     <script>
       /* ==========================================================
-         이벤트 데이터 (초안 — 아직 등록 페이지/서버 연결 전이라
-         이 배열을 직접 수정하는 방식입니다. 날짜는 'YYYY-MM-DD'.)
+         이벤트 데이터는 cozytools-backend(Apps Script + 구글시트)에서
+         불러옵니다. 등록/수정은 register.html에서 합니다.
 
+         내부 표현(fetch 후 normalizeEvent로 변환):
          단일/기간 일정:
            { title, start, end, desc }
          매주 반복 일정:
            { title, repeat: 'weekly', weekday: 0~6(일~토), desc,
              repeatFrom(선택), repeatUntil(선택) }
          ========================================================== */
-      const EVENTS = [
-        {
-          title: "(예시) 길드전",
-          start: "2026-08-20",
-          end: "2026-08-25",
-          desc: "예시 데이터입니다 — 실제 일정으로 교체해 주세요.",
-        },
-        {
-          title: "(예시) 신규 업데이트",
-          start: "2026-09-03",
-          end: "2026-09-03",
-          desc: "예시 데이터입니다 — 실제 일정으로 교체해 주세요.",
-        },
-        {
-          title: "(예시) 주간 출석 이벤트",
-          repeat: "weekly",
-          weekday: 1, // 월요일
-          desc: "매주 반복 일정 예시입니다.",
-        },
-      ];
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbyFKDHsSLJUZAB8pBMQjRv5qjIEWXjbPqmRqxqPzEtkc6I6i1tAbGsk3R1oILbWcA_d/exec";
+
+      let EVENTS = [];
+
+      function normalizeEvent(raw) {
+        if (raw.type === "weekly") {
+          return {
+            title: raw.title,
+            repeat: "weekly",
+            weekday: Number(raw.weekday),
+            repeatFrom: raw.repeatFrom ? String(raw.repeatFrom).slice(0, 10) : "",
+            repeatUntil: raw.repeatUntil ? String(raw.repeatUntil).slice(0, 10) : "",
+            desc: raw.desc,
+          };
+        }
+        return {
+          title: raw.title,
+          start: String(raw.start).slice(0, 10),
+          end: String(raw.end).slice(0, 10),
+          desc: raw.desc,
+        };
+      }
+
+      async function loadEvents() {
+        try {
+          const res = await fetch(API_URL);
+          const data = await res.json();
+          if (!data.ok) throw new Error(data.error || "불러오기 실패");
+          EVENTS = (data.events || []).map(normalizeEvent);
+        } catch (err) {
+          document.getElementById("eventList").innerHTML =
+            '<div class="empty-msg">일정을 불러오지 못했어요. 잠시 후 새로고침해 주세요.</div>';
+        }
+        render();
+      }
 
       const PALETTE = [
         "#6C63C7",
@@ -614,7 +631,7 @@
           .join("");
       }
 
-      render();
+      loadEvents();
     </script>
   </body>
 </html>
