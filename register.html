@@ -254,8 +254,20 @@
           </div>
 
           <div class="field">
-            <label>제목</label>
-            <input type="text" id="fTitle" placeholder="예: 길드전" />
+            <label>카테고리 (선택)</label>
+            <select id="fCategory" onchange="onCategoryChange()">
+              <option value="">카테고리 없음</option>
+              <option value="__custom__">+ 새 카테고리 입력</option>
+            </select>
+          </div>
+          <div class="field hidden" id="categoryCustomField">
+            <label>새 카테고리 이름</label>
+            <input type="text" id="fCategoryCustom" placeholder="예: 천심동등" />
+          </div>
+
+          <div class="field">
+            <label>이름</label>
+            <input type="text" id="fTitle" placeholder="예: 길드전 (카테고리 고르면 그 뒤에 붙는 이름)" />
           </div>
 
           <!-- 단일/기간 일정 필드 -->
@@ -326,7 +338,40 @@
 
       let pw = "";
       let curType = "single";
+      let ALL_EVENTS = [];
       const WEEKDAY_LABEL = ["일", "월", "화", "수", "목", "금", "토"];
+
+      function extractCategory(title) {
+        const idx = title.indexOf(" - ");
+        return idx === -1 ? null : title.slice(0, idx);
+      }
+
+      function populateCategories() {
+        const cats = new Set();
+        ALL_EVENTS.forEach(function (ev) {
+          const c = extractCategory(ev.title);
+          if (c) cats.add(c);
+        });
+        const sorted = Array.from(cats).sort();
+        const sel = document.getElementById("fCategory");
+        const prev = sel.value;
+        sel.innerHTML =
+          '<option value="">카테고리 없음</option>' +
+          sorted
+            .map(function (c) {
+              return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + "</option>";
+            })
+            .join("") +
+          '<option value="__custom__">+ 새 카테고리 입력</option>';
+        if (Array.from(sel.options).some(function (o) { return o.value === prev; })) {
+          sel.value = prev;
+        }
+      }
+
+      function onCategoryChange() {
+        const isCustom = document.getElementById("fCategory").value === "__custom__";
+        document.getElementById("categoryCustomField").classList.toggle("hidden", !isCustom);
+      }
 
       function unlock() {
         const val = document.getElementById("pwInput").value;
@@ -351,11 +396,15 @@
       }
 
       async function submitEvent() {
-        const title = document.getElementById("fTitle").value.trim();
-        if (!title) {
-          showMsg("submitMsg", "제목을 입력해 주세요.", false);
+        const name = document.getElementById("fTitle").value.trim();
+        if (!name) {
+          showMsg("submitMsg", "이름을 입력해 주세요.", false);
           return;
         }
+        const catSel = document.getElementById("fCategory").value;
+        const category =
+          catSel === "__custom__" ? document.getElementById("fCategoryCustom").value.trim() : catSel;
+        const title = category ? category + " - " + name : name;
 
         const body = { action: "add", pw: pw, title: title, type: curType, desc: document.getElementById("fDesc").value.trim() };
 
@@ -386,6 +435,9 @@
             document.getElementById("fDesc").value = "";
             document.getElementById("fStart").value = "";
             document.getElementById("fEnd").value = "";
+            document.getElementById("fCategory").value = "";
+            document.getElementById("fCategoryCustom").value = "";
+            onCategoryChange();
             loadEvents();
           } else {
             showMsg("submitMsg", data.error || "등록에 실패했습니다.", false);
@@ -405,7 +457,9 @@
           const res = await fetch(API_URL);
           const data = await res.json();
           if (!data.ok) throw new Error(data.error || "목록을 불러오지 못했습니다.");
-          renderEvents(data.events || []);
+          ALL_EVENTS = data.events || [];
+          renderEvents(ALL_EVENTS);
+          populateCategories();
         } catch (err) {
           box.innerHTML = '<div class="msg err">불러오기 실패: ' + err.message + "</div>";
         }
