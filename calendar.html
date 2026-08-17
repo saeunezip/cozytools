@@ -371,16 +371,21 @@
       }
 
       async function loadEvents() {
+        // 서버 응답이 느릴 수 있어서, 데이터 없이 달력 틀부터 바로 보여주고 나서 채워 넣음
+        render();
+        document.getElementById("eventList").innerHTML =
+          '<div class="empty-msg">일정을 불러오는 중...</div>';
+
         try {
           const res = await fetch(API_URL);
           const data = await res.json();
           if (!data.ok) throw new Error(data.error || "불러오기 실패");
           EVENTS = (data.events || []).map(normalizeEvent);
+          render();
         } catch (err) {
           document.getElementById("eventList").innerHTML =
             '<div class="empty-msg">일정을 불러오지 못했어요. 잠시 후 새로고침해 주세요.</div>';
         }
-        render();
       }
 
       const PALETTE = [
