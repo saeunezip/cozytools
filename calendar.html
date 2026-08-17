@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>이벤트 캘린더 · 더 코지 플로리스트</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="코지 도구 모음" />
+    <meta property="og:title" content="이벤트 캘린더" />
+    <meta property="og:description" content="더 코지 플로리스트 · 게임 이벤트·업데이트 일정을 한눈에" />
+    <meta property="og:url" content="https://cozytools.kro.kr/calendar.html" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="이벤트 캘린더" />
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Malgun Gothic", sans-serif;
+        margin: 0;
+        padding: 16px 10px 40px;
+        background: #f7f7f8;
+        color: #263238;
+      }
+      .container {
+        max-width: 640px;
+        margin: auto;
+      }
+
+      .header-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .title {
+        color: #152c57;
+        margin: 0;
+        font-size: 21px;
+      }
+      .nav-btn {
+        background: #1f3b73;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-weight: bold;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+      }
+      .nav-btn:hover {
+        filter: brightness(0.92);
+      }
+
+      .panel {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 14px;
+      }
+      .desc {
+        font-size: 12.5px;
+        color: #90a4ae;
+        margin: 0 0 14px;
+        line-height: 1.6;
+      }
+      .info-box {
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 12.5px;
+        color: #6d5a1f;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+
+      /* 월 이동 */
+      .month-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .month-nav button {
+        background: #eceff1;
+        border: none;
+        color: #1f3b73;
+        font-weight: bold;
+        font-size: 16px;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        cursor: pointer;
+      }
+      .month-nav button:hover {
+        background: #dfe3e6;
+      }
+      .month-label {
+        font-size: 16px;
+        font-weight: bold;
+        color: #152c57;
+      }
+      .today-btn {
+        background: none;
+        border: 1px solid #dfe3e6;
+        color: #546e7a;
+        font-size: 11.5px;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-left: 8px;
+      }
+      .today-btn:hover {
+        background: #eceff1;
+      }
+
+      /* 달력 그리드 */
+      .weekday-row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-bottom: 4px;
+      }
+      .weekday-row span {
+        text-align: center;
+        font-size: 11.5px;
+        font-weight: bold;
+        color: #90a4ae;
+        padding: 4px 0;
+      }
+      .weekday-row span:first-child {
+        color: #e57373;
+      }
+      .weekday-row span:last-child {
+        color: #64b5f6;
+      }
+
+      .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 3px;
+      }
+      .cal-cell {
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
+        padding: 4px 3px;
+        background: #fbfbfc;
+        border: 1px solid #f0f1f3;
+        cursor: default;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        overflow: hidden;
+      }
+      .cal-cell.empty {
+        background: transparent;
+        border-color: transparent;
+      }
+      .cal-cell .dnum {
+        font-size: 12px;
+        font-weight: bold;
+        color: #546e7a;
+      }
+      .cal-cell.today {
+        border: 2px solid #1f3b73;
+      }
+      .cal-cell.today .dnum {
+        color: #1f3b73;
+      }
+      .cal-cell .dots {
+        display: flex;
+        gap: 2px;
+        margin-top: 3px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #1f3b73;
+      }
+
+      /* 이벤트 목록 */
+      .event-list {
+        margin-top: 4px;
+      }
+      .event-item {
+        display: flex;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid #eceff1;
+      }
+      .event-item:last-child {
+        border-bottom: none;
+      }
+      .event-date {
+        flex: none;
+        width: 76px;
+        font-size: 12px;
+        color: #90a4ae;
+        font-weight: bold;
+        line-height: 1.5;
+      }
+      .event-body .ename {
+        font-size: 14px;
+        font-weight: bold;
+        color: #152c57;
+      }
+      .event-body .edesc {
+        font-size: 12.5px;
+        color: #78909c;
+        margin-top: 2px;
+        line-height: 1.5;
+      }
+      .empty-msg {
+        text-align: center;
+        color: #90a4ae;
+        font-size: 13px;
+        padding: 14px 0;
+      }
+
+      .footer-note {
+        text-align: center;
+        font-size: 12px;
+        color: #b0bec5;
+        margin-top: 24px;
+        line-height: 1.8;
+      }
+      .footer-note a {
+        color: #90a4ae;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-area">
+        <h2 class="title">이벤트 캘린더</h2>
+        <a href="index.html" class="nav-btn">도구 모음</a>
+      </div>
+
+      <div class="info-box">
+        준비 중인 페이지예요 (초안). 게임 이벤트·업데이트 일정을 여기 한눈에 모아둘 예정입니다.
+      </div>
+
+      <div class="panel">
+        <div class="month-nav">
+          <button onclick="shiftMonth(-1)" aria-label="이전 달">‹</button>
+          <span class="month-label" id="monthLabel"></span>
+          <div>
+            <button
+              class="today-btn"
+              onclick="goToday()"
+              style="display: inline-block; width: auto; height: auto"
+            >
+              오늘
+            </button>
+            <button onclick="shiftMonth(1)" aria-label="다음 달">›</button>
+          </div>
+        </div>
+
+        <div class="weekday-row">
+          <span>일</span><span>월</span><span>화</span><span>수</span
+          ><span>목</span><span>금</span><span>토</span>
+        </div>
+
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="desc" style="margin-bottom: 8px">이번 달 일정</div>
+        <div class="event-list" id="eventList"></div>
+      </div>
+
+      <p class="footer-note">
+        더 코지 플로리스트 길드 &lt;백야&gt; 제작 ·
+        <a href="index.html">다른 도구 보기</a>
+      </p>
+    </div>
+
+    <script>
+      /* ==========================================================
+         이벤트 데이터 (초안 — 시트 연동 없이 이 배열을 직접 수정합니다)
+         날짜는 'YYYY-MM-DD' 형식. end는 하루짜리 이벤트면 start와 동일하게.
+         실제 이벤트로 바꾸려면 아래 배열 내용만 고치고 다시 업로드하세요.
+         ========================================================== */
+      const EVENTS = [
+        {
+          title: "(예시) 길드전",
+          start: "2026-08-20",
+          end: "2026-08-25",
+          desc: "예시 데이터입니다 — 실제 일정으로 교체해 주세요.",
+        },
+        {
+          title: "(예시) 신규 업데이트",
+          start: "2026-09-03",
+          end: "2026-09-03",
+          desc: "예시 데이터입니다 — 실제 일정으로 교체해 주세요.",
+        },
+      ];
+
+      function toDateOnly(d) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      }
+      function parseYMD(s) {
+        const [y, m, d] = s.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      }
+      function fmtYMD(d) {
+        return (
+          d.getFullYear() +
+          "-" +
+          String(d.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(d.getDate()).padStart(2, "0")
+        );
+      }
+
+      const today = toDateOnly(new Date());
+      let viewYear = today.getFullYear();
+      let viewMonth = today.getMonth(); // 0-based
+
+      function shiftMonth(delta) {
+        viewMonth += delta;
+        if (viewMonth < 0) {
+          viewMonth = 11;
+          viewYear--;
+        } else if (viewMonth > 11) {
+          viewMonth = 0;
+          viewYear++;
+        }
+        render();
+      }
+
+      function goToday() {
+        viewYear = today.getFullYear();
+        viewMonth = today.getMonth();
+        render();
+      }
+
+      function eventsOnDay(d) {
+        return EVENTS.filter(function (ev) {
+          const s = parseYMD(ev.start),
+            e = parseYMD(ev.end);
+          return d >= s && d <= e;
+        });
+      }
+
+      function render() {
+        document.getElementById("monthLabel").textContent =
+          viewYear + "년 " + (viewMonth + 1) + "월";
+
+        const firstDay = new Date(viewYear, viewMonth, 1);
+        const startWeekday = firstDay.getDay(); // 0=일
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+        const grid = document.getElementById("calGrid");
+        let html = "";
+
+        for (let i = 0; i < startWeekday; i++) {
+          html += '<div class="cal-cell empty"></div>';
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const d = new Date(viewYear, viewMonth, day);
+          const isToday = d.getTime() === today.getTime();
+          const evs = eventsOnDay(d);
+          const dots = evs
+            .slice(0, 4)
+            .map(function () {
+              return '<span class="dot"></span>';
+            })
+            .join("");
+
+          html +=
+            '<div class="cal-cell' +
+            (isToday ? " today" : "") +
+            '"><span class="dnum">' +
+            day +
+            "</span>" +
+            (evs.length ? '<div class="dots">' + dots + "</div>" : "") +
+            "</div>";
+        }
+
+        grid.innerHTML = html;
+
+        // 이번 달과 겹치는 이벤트만, 시작일 순으로
+        const monthStart = new Date(viewYear, viewMonth, 1);
+        const monthEnd = new Date(viewYear, viewMonth + 1, 0);
+        const monthEvents = EVENTS.filter(function (ev) {
+          const s = parseYMD(ev.start),
+            e = parseYMD(ev.end);
+          return e >= monthStart && s <= monthEnd;
+        }).sort(function (a, b) {
+          return parseYMD(a.start) - parseYMD(b.start);
+        });
+
+        const listBox = document.getElementById("eventList");
+        if (!monthEvents.length) {
+          listBox.innerHTML =
+            '<div class="empty-msg">이번 달 등록된 일정이 없습니다.</div>';
+          return;
+        }
+
+        listBox.innerHTML = monthEvents
+          .map(function (ev) {
+            const dateLabel =
+              ev.start === ev.end
+                ? ev.start.slice(5).replace("-", ".")
+                : ev.start.slice(5).replace("-", ".") +
+                  " ~ " +
+                  ev.end.slice(5).replace("-", ".");
+            return (
+              '<div class="event-item">' +
+              '<div class="event-date">' +
+              dateLabel +
+              "</div>" +
+              '<div class="event-body"><div class="ename">' +
+              ev.title +
+              '</div><div class="edesc">' +
+              (ev.desc || "") +
+              "</div></div>" +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      render();
+    </script>
+  </body>
+</html>

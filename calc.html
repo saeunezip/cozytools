@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>임무 횟수 계산기 · 더 코지 플로리스트</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="코지 도구 모음" />
+    <meta property="og:title" content="임무 횟수 계산기" />
+    <meta property="og:description" content="더 코지 플로리스트 · 길드전 목표 점수까지 몇 번, 어떤 등급으로 채울지 계산해줘요" />
+    <meta property="og:url" content="https://cozytools.kro.kr/calc.html" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="임무 횟수 계산기" />
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Malgun Gothic", sans-serif;
+        margin: 0;
+        padding: 16px 10px 40px;
+        background: #f7f7f8;
+        color: #263238;
+      }
+      .container {
+        max-width: 640px;
+        margin: auto;
+      }
+
+      .header-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .title {
+        color: #152c57;
+        margin: 0;
+        font-size: 21px;
+      }
+      .nav-btn {
+        background: #1f3b73;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-weight: bold;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+      }
+      .nav-btn:hover {
+        filter: brightness(0.92);
+      }
+
+      .panel {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 14px;
+      }
+      .panel h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: #152c57;
+      }
+      .panel .desc {
+        font-size: 12.5px;
+        color: #90a4ae;
+        margin: 0 0 14px;
+        line-height: 1.6;
+      }
+
+      .field {
+        margin-bottom: 12px;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: bold;
+        color: #546e7a;
+        margin-bottom: 5px;
+      }
+      .field input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #dfe3e6;
+        border-radius: 9px;
+        font-size: 15px;
+        outline: none;
+      }
+      .field input:focus {
+        border-color: #1f3b73;
+      }
+      .field-row {
+        display: flex;
+        gap: 10px;
+      }
+      .field-row .field {
+        flex: 1;
+      }
+
+      .btn {
+        background: #1f3b73;
+        color: #fff;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 9px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn:hover {
+        filter: brightness(0.94);
+      }
+
+      .result-box {
+        background: #f3f6fc;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 4px;
+      }
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        padding: 5px 0;
+      }
+      .result-row b {
+        color: #152c57;
+      }
+      .result-total {
+        border-top: 1px solid #dce3f0;
+        margin-top: 6px;
+        padding-top: 10px;
+      }
+      .result-title {
+        font-size: 13.5px;
+        font-weight: bold;
+        color: #152c57;
+        margin-bottom: 6px;
+      }
+      .result-empty {
+        color: #90a4ae;
+        font-size: 13px;
+        text-align: center;
+        padding: 10px 0;
+      }
+
+      table.mini {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 4px;
+        font-size: 13px;
+      }
+      table.mini th,
+      table.mini td {
+        padding: 6px 4px;
+        text-align: right;
+        border-bottom: 1px solid #e3e9f5;
+      }
+      table.mini th:first-child,
+      table.mini td:first-child {
+        text-align: left;
+      }
+      table.mini th {
+        color: #90a4ae;
+        font-weight: bold;
+        font-size: 12px;
+      }
+
+      .note {
+        font-size: 12px;
+        color: #90a4ae;
+        line-height: 1.7;
+        margin-top: 10px;
+      }
+      .info-box {
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 12.5px;
+        color: #6d5a1f;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+      .error-msg {
+        color: #b71c1c;
+        font-weight: bold;
+        font-size: 13px;
+        background: #ffebee;
+        padding: 11px 13px;
+        border-radius: 10px;
+        margin-top: 10px;
+      }
+
+      /* 아코디언 (새로고침 비용 참고) */
+      .accordion-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+      }
+      .accordion-head h3 {
+        flex: 1;
+      }
+      .accordion-arrow {
+        color: #90a4ae;
+        font-size: 13px;
+        transition: transform 0.15s;
+        flex: none;
+        margin-left: 8px;
+      }
+      .accordion-arrow.open {
+        transform: rotate(180deg);
+      }
+      .accordion-body {
+        display: none;
+        margin-top: 12px;
+      }
+      .accordion-body.open {
+        display: block;
+      }
+
+      .presets {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .preset-btn {
+        border: 1px solid #dfe3e6;
+        background: #fbfbfc;
+        padding: 7px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 12.5px;
+        font-weight: bold;
+        color: #546e7a;
+      }
+      .preset-btn:hover {
+        background: #eceff1;
+      }
+
+      .grade-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .grade-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 11px;
+        border: 2px solid #eceff1;
+        border-radius: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .grade-item.on {
+        border-color: #1f3b73;
+        background: #f3f6fc;
+      }
+      .grade-item input {
+        width: 17px;
+        height: 17px;
+        accent-color: #1f3b73;
+      }
+      .grade-item .gname {
+        font-weight: bold;
+        font-size: 14px;
+        flex: 1;
+      }
+      .grade-item .gprob {
+        font-size: 12px;
+        color: #90a4ae;
+      }
+
+      .footer-note {
+        text-align: center;
+        font-size: 12px;
+        color: #b0bec5;
+        margin-top: 24px;
+        line-height: 1.8;
+      }
+      .footer-note a {
+        color: #90a4ae;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-area">
+        <h2 class="title">임무 계산</h2>
+        <a href="index.html" class="nav-btn">도구 모음</a>
+      </div>
+
+      <div class="info-box">
+        더 코지 플로리스트 길드전용 계산기예요. 내 스프레드시트나 로그인 없이 숫자만 넣으면 바로 계산돼요.
+      </div>
+
+      <!-- 목표 조합 계산기 -->
+      <div class="panel">
+        <h3>목표까지 몇 번, 어떤 등급으로?</h3>
+        <p class="desc">
+          목표 점수와 지금 점수, 남은 임무 횟수를 넣으면 최대한 낮은 등급부터
+          채우고, 모자란 만큼만 높은 등급으로 채우는 조합을 계산해요. <br />모든
+          임무는 다이아로 2배 업그레이드했다고 가정합니다.
+        </p>
+
+        <div class="field">
+          <label>목표 점수 (커트라인)</label>
+          <input
+            type="number"
+            id="targetScore"
+            placeholder="예: 1400"
+            inputmode="numeric"
+          />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>지금 내 점수</label>
+            <input
+              type="number"
+              id="currentScore"
+              value="0"
+              inputmode="numeric"
+            />
+          </div>
+          <div class="field">
+            <label>남은 임무 횟수</label>
+            <input
+              type="number"
+              id="remainingCount"
+              value="24"
+              inputmode="numeric"
+            />
+          </div>
+        </div>
+
+        <button class="btn" onclick="calcCombo()">계산</button>
+
+        <div id="comboResult"></div>
+      </div>
+
+      <!-- 새로고침 비용 참고 (아코디언) -->
+      <div class="panel">
+        <button class="accordion-head" onclick="toggleAccordion()">
+          <h3>새로고침 비용</h3>
+          <span class="accordion-arrow" id="accArrow">▾</span>
+        </button>
+
+        <div id="accordionBody" class="accordion-body">
+          <p class="desc" style="margin: 6px 0 0">
+            원하는 등급을 띄울 때 다이아가 얼마나 들지 예상해보는 계산기예요.
+          </p>
+          <div class="presets" style="margin-top: 14px">
+            <button class="preset-btn" onclick="pickPreset(['URP'])">
+              UR+만
+            </button>
+            <button class="preset-btn" onclick="pickPreset(['UR', 'URP'])">
+              UR 이상
+            </button>
+            <button
+              class="preset-btn"
+              onclick="pickPreset(['SR', 'SRP', 'SSR', 'UR', 'URP'])"
+            >
+              전부
+            </button>
+          </div>
+
+          <div class="grade-list" id="gradeList"></div>
+
+          <div class="result-box" id="refreshResult">
+            <div class="result-empty">등급을 하나 이상 선택해 주세요.</div>
+          </div>
+
+          <div class="info-box" style="margin-top: 14px; margin-bottom: 0">
+            고급(16다이아)·중급(8다이아) 새로고침은 목표를 뭘로 잡든
+            일반(2다이아) 반복보다 항상 평균 1.578배 비쌉니다.
+            <b>특수한 상황이 아니라면 일반 반복이 항상 유리해요.</b>
+          </div>
+        </div>
+      </div>
+
+      <p class="footer-note">
+        더 코지 플로리스트 길드 &lt;백야&gt; 제작 ·
+        <a href="index.html">다른 도구 보기</a>
+      </p>
+    </div>
+
+    <script>
+      const GRADES = [
+        { key: "SR", label: "SR", score: 21, prob: 0.0413 },
+        { key: "SRP", label: "SR+", score: 23, prob: 0.0512 },
+        { key: "SSR", label: "SSR", score: 25, prob: 0.0511 },
+        { key: "UR", label: "UR", score: 28, prob: 0.0435 },
+        { key: "URP", label: "UR+", score: 30, prob: 0.0102 },
+      ]; // 점수 오름차순으로 정렬돼 있어야 조합 계산이 맞습니다.
+      const REFRESH_COST = 2; // 일반 새로고침 다이아 비용
+      const UPGRADE_MULT = 2; // 목표 조합 계산은 모든 임무를 업그레이드한다고 가정
+      const MAX_UPGRADE_LEVEL = 4; // 개량 최대 단계 (게임이 바뀌면 여기만 고치세요)
+
+      /* ---------- 목표 조합 계산기 ---------- */
+      function calcCombo() {
+        const box = document.getElementById("comboResult");
+        const target = parseInt(
+          document.getElementById("targetScore").value,
+          10,
+        );
+        const current =
+          parseInt(document.getElementById("currentScore").value, 10) || 0;
+        const remaining = parseInt(
+          document.getElementById("remainingCount").value,
+          10,
+        );
+
+        if (!target || target <= 0) {
+          box.innerHTML =
+            '<div class="error-msg">목표 점수를 입력해 주세요.</div>';
+          return;
+        }
+        if (!remaining || remaining <= 0) {
+          box.innerHTML =
+            '<div class="error-msg">남은 임무 횟수를 입력해 주세요.</div>';
+          return;
+        }
+
+        const need = target - current;
+        if (need <= 0) {
+          box.innerHTML =
+            '<div class="result-box"><div class="result-row"><b>이미 목표를 달성했습니다!</b></div></div>';
+          return;
+        }
+
+        const grades = GRADES.map(function (g) {
+          return { key: g.key, label: g.label, score: g.score * UPGRADE_MULT, baseScore: g.score };
+        });
+        // UR+ 는 개량 단계(+1~+4)만큼 점수가 그대로 더 붙습니다 (업그레이드 후 60점 → 최대 64점).
+        // 다이아 비용은 개량 단계와 무관하게 UR+ 기본 점수(30) 기준이라 baseScore는 그대로 둡니다.
+        const urPlus = grades[grades.length - 1];
+        for (let lv = 1; lv <= MAX_UPGRADE_LEVEL; lv++) {
+          grades.push({
+            key: urPlus.key + "_p" + lv,
+            label: urPlus.label + " (개량+" + lv + ")",
+            score: urPlus.score + lv,
+            baseScore: urPlus.baseScore,
+          });
+        }
+        const maxScore = grades[grades.length - 1].score;
+        const maxTotal = maxScore * remaining;
+
+        if (need > maxTotal) {
+          box.innerHTML =
+            '<div class="error-msg">남은 ' +
+            remaining +
+            "회로는 부족합니다. " +
+            "(전부 UR+(개량+" + MAX_UPGRADE_LEVEL + ")로 채워도 최대 " +
+            maxTotal +
+            "점)</div>";
+          return;
+        }
+
+        const counts = {};
+        grades.forEach(function (g) {
+          counts[g.key] = 0;
+        });
+
+        const lowest = grades[0];
+        const minCountLowest = Math.ceil(need / lowest.score);
+
+        if (minCountLowest <= remaining) {
+          // 가장 낮은 등급만으로, 그것도 필요한 최소 횟수만으로 충분 → 더 쓸 필요 없음
+          counts[lowest.key] = minCountLowest;
+        } else {
+          // 가장 낮은 등급을 남은 횟수 전부 써도 모자람 → 평균적으로 한 번에 몇 점씩 필요한지 계산해서,
+          // 그 값을 감싸는 인접한 두 등급으로 남은 횟수를 전부 채웁니다.
+          const avg = need / remaining;
+          let lowIdx = -1;
+          for (let i = 0; i < grades.length; i++) {
+            if (grades[i].score <= avg) lowIdx = i;
+          }
+          if (lowIdx === grades.length - 1) {
+            counts[grades[lowIdx].key] = remaining;
+          } else {
+            const low = grades[lowIdx],
+              high = grades[lowIdx + 1];
+            let highCount = Math.ceil(
+              (need - remaining * low.score) / (high.score - low.score),
+            );
+            highCount = Math.max(0, Math.min(remaining, highCount));
+            counts[high.key] = highCount;
+            counts[low.key] = remaining - highCount;
+          }
+        }
+
+        renderComboResult(grades, counts, need, remaining);
+      }
+
+      function renderComboResult(grades, counts, need, remaining) {
+        const box = document.getElementById("comboResult");
+        const used = grades.filter(function (g) {
+          return counts[g.key] > 0;
+        });
+
+        let total = 0,
+          totalAttempts = 0;
+        const comboRows = used
+          .map(function (g) {
+            const sub = counts[g.key] * g.score;
+            total += sub;
+            totalAttempts += counts[g.key];
+            return (
+              '<div class="result-row"><span>' +
+              g.label +
+              " × " +
+              counts[g.key] +
+              "회</span><b>" +
+              sub +
+              "점</b></div>"
+            );
+          })
+          .join("");
+
+        // 임무 레벨업(2배 업그레이드) 비용 = 업그레이드 전 기본 점수 × 3다이아, 등급별 횟수만큼
+        let upgradeCostTotal = 0;
+        const upgradeRows = used
+          .map(function (g) {
+            const sub = g.baseScore * 3 * counts[g.key];
+            upgradeCostTotal += sub;
+            return (
+              '<div class="result-row"><span>' +
+              g.label +
+              " × " +
+              counts[g.key] +
+              "회</span><b>" +
+              sub +
+              "다이아</b></div>"
+            );
+          })
+          .join("");
+
+        box.innerHTML =
+          '<div class="result-box">' +
+          '<div class="result-title">등급별 조합 (남은 ' +
+          remaining +
+          "회 중 " +
+          totalAttempts +
+          "회 사용)</div>" +
+          '<div class="result-row"><span>필요 점수</span><b>' +
+          need +
+          "점</b></div>" +
+          comboRows +
+          '<div class="result-row result-total"><span>합계</span><b>' +
+          total +
+          "점</b></div>" +
+          "</div>" +
+          '<div class="result-box" style="margin-top:10px;">' +
+          '<div class="result-title">임무 레벨업 비용 (전부 2배 업그레이드 기준)</div>' +
+          upgradeRows +
+          '<div class="result-row result-total"><span>합계</span><b>' +
+          upgradeCostTotal +
+          "다이아</b></div>" +
+          "</div>" +
+          '<p class="note">이 등급들을 새로고침으로 맞추려면 다이아가 얼마나 드는지는 아래에서 등급을 체크해 확인해보세요.</p>';
+      }
+
+      /* ---------- 새로고침 비용 참고 (아코디언) ---------- */
+      let accordionOpen = false;
+      function toggleAccordion() {
+        accordionOpen = !accordionOpen;
+        document
+          .getElementById("accordionBody")
+          .classList.toggle("open", accordionOpen);
+        document
+          .getElementById("accArrow")
+          .classList.toggle("open", accordionOpen);
+      }
+
+      const selected = {};
+
+      function buildGradeList() {
+        const box = document.getElementById("gradeList");
+        box.innerHTML = GRADES.map(function (g) {
+          return (
+            '<label class="grade-item" id="gi-' +
+            g.key +
+            '">' +
+            '<input type="checkbox" onchange="toggleGrade(\'' +
+            g.key +
+            "', this.checked)\">" +
+            '<span class="gname">' +
+            g.label +
+            " (" +
+            g.score +
+            "점)</span>" +
+            '<span class="gprob">' +
+            (g.prob * 100).toFixed(2) +
+            "%</span>" +
+            "</label>"
+          );
+        }).join("");
+      }
+
+      function toggleGrade(key, on) {
+        selected[key] = on;
+        document.getElementById("gi-" + key).classList.toggle("on", on);
+        renderRefreshResult();
+      }
+
+      function pickPreset(keys) {
+        GRADES.forEach(function (g) {
+          const on = keys.indexOf(g.key) !== -1;
+          selected[g.key] = on;
+          const item = document.getElementById("gi-" + g.key);
+          item.classList.toggle("on", on);
+          item.querySelector("input").checked = on;
+        });
+        renderRefreshResult();
+      }
+
+      function renderRefreshResult() {
+        const box = document.getElementById("refreshResult");
+        const chosen = GRADES.filter(function (g) {
+          return selected[g.key];
+        });
+        if (!chosen.length) {
+          box.innerHTML =
+            '<div class="result-empty">등급을 하나 이상 선택해 주세요.</div>';
+          return;
+        }
+        const p = chosen.reduce(function (sum, g) {
+          return sum + g.prob;
+        }, 0);
+        const expectedTries = 1 / p;
+        const expectedCost = REFRESH_COST / p;
+
+        const checkpoints = [5, 10, 20, 30, 50];
+        const rows = checkpoints
+          .map(function (n) {
+            const prob = 1 - Math.pow(1 - p, n);
+            return (
+              "<tr><td>" +
+              n +
+              "회 안에</td><td>" +
+              (prob * 100).toFixed(1) +
+              "%</td></tr>"
+            );
+          })
+          .join("");
+
+        box.innerHTML =
+          '<div class="result-row"><span>선택한 등급</span><b>' +
+          chosen
+            .map(function (g) {
+              return g.label;
+            })
+            .join(", ") +
+          "</b></div>" +
+          '<div class="result-row"><span>합친 확률</span><b>' +
+          (p * 100).toFixed(2) +
+          "%</b></div>" +
+          '<div class="result-row"><span>기대 새로고침 횟수</span><b>' +
+          expectedTries.toFixed(1) +
+          "회</b></div>" +
+          '<div class="result-row"><span>기대 다이아 비용</span><b>' +
+          expectedCost.toFixed(1) +
+          "다이아</b></div>" +
+          '<table class="mini"><thead><tr><th>성공 확률</th><th>%</th></tr></thead><tbody>' +
+          rows +
+          "</tbody></table>";
+      }
+
+      /* ---------- 시작 ---------- */
+      buildGradeList();
+    </script>
+  </body>
+</html>
