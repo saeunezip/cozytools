@@ -4,8 +4,10 @@
 자세한 목표와 기획 배경은 같은 폴더의 `범용도구사이트-구상.md` 참고.
 
 **이 프로젝트는 [guild-flower](../guild-flower) (길드 <백야> 길드전 계산기)와 완전히 별개의 프로젝트다.**
-Apps Script/스프레드시트를 전혀 쓰지 않는 순수 정적 웹페이지(HTML/CSS/JS만)로 만든다.
-GitHub Pages로 배포하는 것만 guild-flower와 비슷하고, 나머지(스택·리포지토리·배포 흐름)는 다르다.
+사이트 자체(`index.html`/`calc.html`/`calendar.html`/`register.html`)는 빌드 없는 순수 정적 웹페이지(HTML/CSS/JS)로, GitHub Pages로 배포한다.
+guild-flower와 스택·리포지토리·배포 흐름 전부 다르다.
+
+**단, 캘린더 일정 저장만은 예외** — [cozytools-backend](../cozytools-backend)라는 **cozytools 전용** Apps Script+구글시트가 따로 있다. guild-flower의 스크립트/시트와는 무관한 새 프로젝트. 자세한 내용은 그 폴더의 `CLAUDE.md` 참고.
 
 ---
 
@@ -15,7 +17,8 @@ GitHub Pages로 배포하는 것만 guild-flower와 비슷하고, 나머지(스�
 |---|---|
 | `index.html` | 허브 페이지 — 도구 목록 |
 | `calc.html` | 길드전 임무 횟수 계산기 |
-| `calendar.html` | 이벤트 캘린더 (초안 — 아래 참고) |
+| `calendar.html` | 이벤트 캘린더 — `cozytools-backend`에서 fetch로 실시간 로드 |
+| `register.html` | 일정 등록/삭제 (비밀번호 게이트). **사이트 어디에도 링크 안 걸어둠 — 주소를 아는 사람만 접근.** `index.html`에 카드 추가하지 말 것 |
 | `범용도구사이트-구상.md` | 이 사이트의 목표·전략, 앞으로 만들 도구 아이디어 목록 |
 
 모두 빌드 과정 없는 순수 HTML — 파일 열면 그대로 동작한다 (단, 로컬에서 열 때는 `file://`로 열지 말고 간단한 정적 서버로 띄워서 확인할 것. 브라우저에 따라 `file://`에서 스크립트 동작이 이상해질 수 있음. 예: `python -m http.server`).
@@ -24,9 +27,10 @@ GitHub Pages로 배포하는 것만 guild-flower와 비슷하고, 나머지(스�
 
 ## 배포
 
-- **GitHub 리포지토리**: 아직 없음. guild-flower가 쓰는 `cozy-flower` 리포지토리와는 **다른, 새 리포지토리**를 만들 예정.
-- **배포 방식**: 리포지토리 만든 뒤 GitHub Pages 켜기. 빌드 스텝 없음 — 리포지토리 루트가 곧 사이트 루트.
-- **도메인**: `cozytools.kro.kr` (kro.kr 무료 서브도메인, CNAME → 새 리포지토리의 `username.github.io`로 연결 예정. DNS 자체는 이미 설정해둠 — 리포지토리 확정되면 GitHub Pages 설정에서 커스텀 도메인만 다시 연결하면 됨. 예전에 `cozy-flower` 리포지토리에 임시로 연결했다가 인증서 문제로 연결 해제한 이력 있음).
+- **GitHub 리포지토리**: [saeunezip/cozytools](https://github.com/saeunezip/cozytools) — guild-flower가 쓰는 `cozy-flower`와는 별개.
+- **배포 방식**: GitHub Pages, `main` 브랜치 `/ (root)`. 빌드 스텝 없음 — 리포지토리 루트가 곧 사이트 루트. `git push origin main`이면 반영됨 (재배포 절차 따로 없음 — guild-flower의 clasp/exec 방식과 다름).
+- **도메인**: `cozytools.kro.kr` 연결 완료. 저장소 루트에 `CNAME` 파일로 관리됨 (GitHub Pages 커스텀 도메인 설정 시 자동 생성/갱신되니 직접 건드릴 일 거의 없음).
+- **로컬 git 인증**: 이 리포지토리는 push 시 Git Credential Manager가 브라우저/모바일 앱 승인을 요구함 (사람이 한 번 승인해야 하는 단계 — Claude Code가 대신 못 함).
 
 ---
 
@@ -39,11 +43,16 @@ guild-flower의 `Calc.html`(Apps Script 템플릿, 길드 앱 안에서 `?page=c
 
 ---
 
-## calendar.html — 초안 상태
+## calendar.html / register.html — 실제로 저장됨
 
-**아직 초안이다.** `EVENTS` 배열(파일 안 `<script>` 상단)에 이벤트를 직접 하드코딩하는 방식 — 관리자 화면도, 시트 연동도 없음. 이벤트 추가/수정은 이 파일을 열어 배열을 고치고 다시 업로드하는 식.
+**2026-08-18부터 실사용 상태.** `calendar.html`은 더 이상 하드코딩 배열을 안 쓰고, `cozytools-backend`(Apps Script) `GET /exec`를 fetch해서 이벤트를 불러온다. `register.html`이 같은 백엔드에 `POST /exec`로 등록/삭제한다.
 
-guild-flower 폴더의 `기능-이벤트캘린더.md`에는 이것과 다른 설계(시트 `이벤트_목록` + Admin 비밀번호로 등록하는 방식)가 확정되어 있음. **두 설계가 서로 다른 방향이라 아직 정리가 안 된 상태** — 이 정적 방식으로 계속 갈지, 나중에 guild-flower 쪽에 Admin 연동 버전을 따로 만들지는 미정. 새 세션에서 이 기능을 다시 만질 때는 이 상충을 먼저 확인할 것.
+- 여러 날짜에 걸친 일정은 달력에서 이어진 막대로 표시됨 (주가 바뀌어도 같은 줄 유지)
+- 단일/기간 일정, 매주 반복 일정 둘 다 지원
+- `register.html`은 비밀번호(백엔드 Script Properties에 저장, 코드엔 없음)로 게이트 — 링크를 아는 사람만 접근, 사이트 내 어디서도 링크 안 걸어둠
+- 백엔드 API 주소(`API_URL`)는 `calendar.html`/`register.html` 양쪽에 하드코딩돼 있음. 백엔드 재배포해도 배포 ID 고정해서 하면 이 주소는 안 바뀜 (`cozytools-backend/CLAUDE.md` 참고) — 안 바뀌었으면 이 두 파일은 손댈 필요 없음
+
+guild-flower 폴더의 `기능-이벤트캘린더.md`에는 guild-flower 자체에 Admin+시트로 통합하는 다른(더 예전) 설계가 남아있는데, **이 cozytools 버전으로 대체됐다고 보면 됨** — 굳이 guild-flower 쪽에 또 만들 필요 없음.
 
 ---
 
@@ -62,7 +71,5 @@ guild-flower 폴더의 `기능-이벤트캘린더.md`에는 이것과 다른 설
 
 ## 아직 안 한 것
 
-- GitHub 리포지토리 생성 (새우님이 직접 만들 예정)
-- `robots.txt` — 아직 없음(기본값: 전체 허용). guild-flower의 `_github/robots.txt`는 검색엔진 차단용이었는데, 이 사이트는 목적이 정반대(커뮤니티 홍보)라 그대로 가져오면 안 됨. 필요해지면 새로 작성.
+- `robots.txt` — 아직 없음(기본값: 전체 허용, 의도한 대로임 — 홍보 목적이라 검색엔진 차단 안 함). 단 `register.html`은 `<meta name="robots" content="noindex">`로 개별 차단해둠
 - 카카오톡 등 링크 미리보기용 `og:image` — 아직 이미지 없음 (guild-flower의 `preview.png` 같은 것)
-- `기능-이벤트캘린더.md`와의 설계 상충 정리 (위 참고)
