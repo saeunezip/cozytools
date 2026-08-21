@@ -19,6 +19,12 @@
 
 즉 우리 쪽 설정 문제가 아니다.
 
+### 정정: `saeunezip.github.io/cozytools` 도 지금은 안전하지 않다
+
+저장소에 `CNAME` 파일이 있으면 GitHub Pages 는 `.github.io` 주소를 커스텀 도메인으로 **302 리다이렉트**시킨다.
+실제로 `https://saeunezip.github.io/cozytools/` → `http://cozytools.kro.kr/` 로 넘어간다 (https 도 아닌 **http**).
+**현재 이 사이트에는 정상 동작하는 HTTPS 주소가 하나도 없다.**
+
 ## 진짜 원인: kro.kr 이 Public Suffix List 에 없다
 
 - Let's Encrypt 는 **Public Suffix List(PSL)** 로 "등록 도메인" 을 판정하고,
@@ -57,3 +63,34 @@ kro.kr 운영자가 PSL 등재를 신청하지 않는 한 해결되지 않는다
 - Let's Encrypt Rate Limits: https://letsencrypt.org/docs/rate-limits/
 - Public Suffix List: https://publicsuffix.org/list/
 - GitHub Pages 커스텀 도메인 문제 해결: https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/troubleshooting-custom-domains-and-github-pages
+
+
+---
+
+## 결정 (2026-08-21): Cloudflare Pages 로 이전
+
+`pages.dev` 는 PSL 에 등재돼 있어 HTTPS 가 확실히 붙는다. 이미 Cloudflare 계정
+(`kyunga72765@gmail.com`)으로 `cozytools-backend` Worker 를 쓰고 있으므로 계정도 그대로 쓴다.
+
+### 진행 순서
+
+1. **Pages 프로젝트 생성** — Workers & Pages → Create → Pages → Connect to Git → `saeunezip/cozytools`
+   - Production branch: `main`
+   - Framework preset: `None`
+   - Build command: `mkdir -p dist && cp *.html dist/`
+   - Build output directory: `dist`
+   - 빌드 명령을 쓰는 이유: 저장소 최상위의 `.md` 문서(`CLAUDE.md` 등)가 그대로 공개되는 걸 막는다.
+     지금 GitHub Pages 는 이걸 그대로 서빙하고 있다.
+2. **`cozytools.pages.dev` 로 HTTPS 확인**
+3. **`cozytools.kro.kr` 살리기 시도** (안 되면 포기해도 됨)
+   - Pages → Custom domains → `cozytools.kro.kr` 등록
+   - kro.kr 관리 페이지에서 CNAME 을 `saeunezip.github.io` → `cozytools.pages.dev` 로 변경
+   - **될 가능성이 있는 이유**: Cloudflare 는 Let's Encrypt 외에 Google Trust Services / SSL.com 도
+     쓴다. GTS 는 PSL 기반 50장/주 제한을 쓰지 않으므로 kro.kr 병목을 피할 수 있다.
+     (보장은 아님 — 안 되면 `pages.dev` 로 간다)
+4. **GitHub Pages 정리** — Cloudflare 가 뜬 뒤에 `CNAME` 파일 삭제 + Pages 설정에서 custom domain 제거.
+   그래야 `saeunezip.github.io/cozytools` 가 리다이렉트 없이 예비 주소로 쓸 수 있다.
+   **순서 주의: Cloudflare 가 정상 동작하기 전에 지우면 안 된다.**
+5. **og:url 갱신** — 최종 주소가 정해지면 `index.html` / `calc.html` / `calendar.html` 12번째 줄의
+   `og:url` 을 바꾼다. 카카오톡·디스코드 링크 미리보기에 쓰이는 값이라 커뮤니티 공유 시 중요하다.
+   내부 링크는 전부 상대경로(`href="calc.html"`)라 도메인이 바뀌어도 그대로 동작한다.
