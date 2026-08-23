@@ -1,0 +1,1169 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>스타소울 파견 계산기 · 더 코지 플로리스트</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="코지 도구 모음" />
+    <meta property="og:title" content="스타소울 파견 계산기" />
+    <meta property="og:description" content="더 코지 플로리스트 · 이번 주 보너스와 마감까지 남은 시간, 보유량으로 최대 파견 가능량을 계산해요" />
+    <meta property="og:url" content="https://cozytools.kro.kr/starsoul.html" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="스타소울 파견 계산기" />
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Malgun Gothic", sans-serif;
+        margin: 0;
+        padding: 16px 10px 40px;
+        background: #f7f7f8;
+        color: #263238;
+      }
+      .container {
+        max-width: 640px;
+        margin: auto;
+      }
+
+      .header-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .title {
+        color: #152c57;
+        margin: 0;
+        font-size: 21px;
+      }
+      .nav-btn {
+        background: #1f3b73;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-weight: bold;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .panel {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 14px;
+      }
+      .panel h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: #152c57;
+      }
+      .panel .desc {
+        font-size: 12.5px;
+        color: #90a4ae;
+        margin: 0 0 14px;
+        line-height: 1.6;
+      }
+
+      .info-box {
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 12.5px;
+        color: #6d5a1f;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+      .error-msg {
+        color: #b71c1c;
+        font-weight: bold;
+        font-size: 13px;
+        background: #ffebee;
+        padding: 11px 13px;
+        border-radius: 10px;
+        margin-top: 10px;
+      }
+      .empty-msg {
+        text-align: center;
+        color: #90a4ae;
+        font-size: 13px;
+        padding: 14px 0;
+      }
+
+      /* ① 보너스 카드 */
+      .bonus-card {
+        background: linear-gradient(135deg, #1f3b73, #152c57);
+        color: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+      .bonus-card .bc-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .bonus-card .bc-top h3 {
+        margin: 0;
+        font-size: 15px;
+        color: #fff;
+      }
+      .bonus-card .bc-week {
+        font-size: 12px;
+        color: #b8c4dd;
+        font-weight: bold;
+      }
+      .soul-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .soul-thumb {
+        flex: 1;
+        min-width: 84px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 8px 4px;
+      }
+      .soul-thumb img {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .soul-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: bold;
+        color: #fff;
+      }
+      .soul-badge.grade-SSR {
+        background: #e3a23c;
+      }
+      .soul-badge.grade-SR {
+        background: #4a90d9;
+      }
+      .soul-badge.grade-R {
+        background: #78909c;
+      }
+      .soul-name {
+        font-size: 11.5px;
+        font-weight: bold;
+        margin-top: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .countdown-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        padding: 4px 0;
+        color: #d7ddec;
+      }
+      .countdown-row b {
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+      }
+      .bc-updated {
+        font-size: 11px;
+        color: #8b98b8;
+        margin-top: 10px;
+      }
+      .bc-updated button {
+        background: none;
+        border: none;
+        color: #9fb0d8;
+        text-decoration: underline;
+        font-size: 11px;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      /* ② 마감 카운트다운 */
+      .deadline-card {
+        border-radius: 12px;
+        padding: 13px 15px;
+        margin-bottom: 14px;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .deadline-card.hot {
+        background: #fff3e0;
+        border: 1px solid #ffcc80;
+        color: #7a4a10;
+      }
+      .deadline-card.cool {
+        background: #eef2fb;
+        border: 1px solid #c9d4ec;
+        color: #354a73;
+      }
+      .deadline-card b {
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* 탭 / 토글 공통 */
+      .toggle-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .toggle-row button {
+        flex: 1;
+        padding: 10px;
+        border-radius: 9px;
+        border: 2px solid #eceff1;
+        background: #fbfbfc;
+        color: #546e7a;
+        font-weight: bold;
+        font-size: 13.5px;
+        cursor: pointer;
+      }
+      .toggle-row button.on {
+        border-color: #1f3b73;
+        background: #f3f6fc;
+        color: #1f3b73;
+      }
+
+      .field {
+        margin-bottom: 12px;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: bold;
+        color: #546e7a;
+        margin-bottom: 5px;
+      }
+      .field input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #dfe3e6;
+        border-radius: 9px;
+        font-size: 15px;
+        outline: none;
+      }
+      .field input:focus {
+        border-color: #1f3b73;
+      }
+      .field-row {
+        display: flex;
+        gap: 10px;
+      }
+      .field-row .field {
+        flex: 1;
+      }
+      .field-note {
+        font-size: 11.5px;
+        color: #90a4ae;
+        margin-top: 4px;
+      }
+      .range-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .range-row input[type="range"] {
+        flex: 1;
+      }
+      .range-row .range-val {
+        flex: none;
+        width: 34px;
+        text-align: right;
+        font-weight: bold;
+        color: #1f3b73;
+      }
+
+      /* 결과 */
+      .result-box {
+        background: #f3f6fc;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 4px;
+      }
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        padding: 5px 0;
+      }
+      .result-row.sub {
+        padding-left: 12px;
+        font-size: 12.5px;
+        color: #607085;
+      }
+      .result-row b {
+        color: #152c57;
+      }
+      .result-title {
+        font-size: 13.5px;
+        font-weight: bold;
+        color: #152c57;
+        margin-bottom: 6px;
+      }
+      .result-total {
+        border-top: 1px solid #dce3f0;
+        margin-top: 6px;
+        padding-top: 10px;
+      }
+      .result-max-tag {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: bold;
+        color: #1f3b73;
+        background: #dbe4f7;
+        padding: 2px 7px;
+        border-radius: 8px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+
+      .estimate-box {
+        border: 1.5px dashed #cfd8dc;
+        background: #fafbfc;
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-top: 12px;
+        color: #78909c;
+      }
+      .estimate-box b {
+        color: #546e7a;
+      }
+
+      /* 아코디언 */
+      .accordion-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+      }
+      .accordion-head h3 {
+        flex: 1;
+      }
+      .accordion-arrow {
+        color: #90a4ae;
+        font-size: 13px;
+        transition: transform 0.15s;
+        flex: none;
+        margin-left: 8px;
+      }
+      .accordion-arrow.open {
+        transform: rotate(180deg);
+      }
+      .accordion-body {
+        display: none;
+        margin-top: 12px;
+      }
+      .accordion-body.open {
+        display: block;
+      }
+
+      table.timeline {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+        margin-top: 6px;
+      }
+      table.timeline th,
+      table.timeline td {
+        padding: 6px 4px;
+        text-align: right;
+        border-bottom: 1px solid #e3e9f5;
+      }
+      table.timeline th:first-child,
+      table.timeline td:first-child {
+        text-align: left;
+      }
+      table.timeline th {
+        color: #90a4ae;
+        font-weight: bold;
+        font-size: 11.5px;
+      }
+
+      .footer-note {
+        text-align: center;
+        font-size: 12px;
+        color: #b0bec5;
+        margin-top: 24px;
+        line-height: 1.8;
+      }
+      .footer-note a {
+        color: #90a4ae;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-area">
+        <h2 class="title">스타소울 파견</h2>
+        <a href="index.html" class="nav-btn">도구 모음</a>
+      </div>
+
+      <div class="info-box">
+        이번 주 보너스와 마감 시각, 보유량으로 이번 로테이션 종료까지 <b>최대</b> 몇 마리를 파견해서 코인을 얼마나 벌 수 있는지 계산해요.
+        하루 12/30개는 <b>획득 상한</b>이라 결과는 전부 <b>이론 최대치</b>예요 — 실제로는 이보다 적을 수 있어요.
+      </div>
+
+      <!-- ① 현재 보너스 카드 -->
+      <div class="bonus-card" id="bonusCard">
+        <div class="empty-msg" style="color: #d7ddec">불러오는 중...</div>
+      </div>
+
+      <!-- ② 마감 카운트다운 -->
+      <div id="deadlineArea"></div>
+
+      <!-- ③ 입력부 -->
+      <div class="panel">
+        <h3>내 보유량 입력</h3>
+        <p class="desc">짝꿍 꽃을 이 등급 한 종류로 집중해서 심고 있다고 가정합니다. 여러 등급을 섞어 심으면 독립 시행 편차가 커서 정확한 예측이 어려워요.</p>
+
+        <div class="field">
+          <label>계산 대상 등급</label>
+          <div class="toggle-row" id="gradeTabs"></div>
+        </div>
+
+        <div class="field">
+          <label>지금 보유 수량</label>
+          <input type="number" id="inStock" inputmode="numeric" min="0" value="0" />
+        </div>
+
+        <div class="field">
+          <label>획득 경로</label>
+          <div class="toggle-row" id="pathTabs"></div>
+        </div>
+
+        <div class="field">
+          <label>슬롯 개수 (기본 2개, 확장 시 최대 5개)</label>
+          <div class="toggle-row" id="slotTabs"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>하루 파견 갱신 횟수</label>
+            <input type="number" id="inK" inputmode="numeric" min="1" max="6" value="3" />
+            <div class="field-note">하루에 몇 번 들어와서 슬롯을 다시 채우나요</div>
+          </div>
+          <div class="field">
+            <label>오늘 획득 상한이 얼마나 남았나요?</label>
+            <input type="number" id="inTodayCap" inputmode="numeric" min="0" value="0" />
+            <div class="field-note">"지급받았나"가 아니라 오늘 캡의 남은 양</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>목표 등급을 심은 친구에게서 하루 몇 개나 확실히 받을 수 있나요?</label>
+          <div class="range-row">
+            <input type="range" id="inFriend" min="0" max="4" step="1" value="0" />
+            <span class="range-val" id="friendVal">0</span>
+          </div>
+          <div class="field-note">추정치에만 반영돼요 (본 계산 합계에는 안 더함)</div>
+        </div>
+
+        <button class="accordion-head" onclick="toggleAdvanced()" style="margin-top: 6px">
+          <h3 style="font-size: 13.5px">고급 설정</h3>
+          <span class="accordion-arrow" id="advArrow">▾</span>
+        </button>
+        <div id="advancedBody" class="accordion-body">
+          <div class="field" style="margin-top: 10px">
+            <label>하루 상한 달성률 (%)</label>
+            <input type="number" id="inRate" inputmode="numeric" min="1" max="100" value="100" />
+            <div class="field-note">매일 캡을 다 못 채우는 경우용. 100%면 결과가 곧 이론 최대치. 활동 시간대는 08:00~24:00 KST 고정으로 계산해요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ 결과부 -->
+      <div class="panel">
+        <h3>계산 결과</h3>
+        <div id="resultsArea"></div>
+      </div>
+
+      <!-- ⑤ 스톡 전략 비교 -->
+      <div id="stockStrategyArea"></div>
+
+      <!-- 상세 타임라인 -->
+      <div class="panel">
+        <button class="accordion-head" onclick="toggleTimeline()">
+          <h3>상세 타임라인</h3>
+          <span class="accordion-arrow" id="tlArrow">▾</span>
+        </button>
+        <div id="timelineBody" class="accordion-body">
+          <p class="desc" style="margin: 10px 0 0">각 배치의 시작/완료 시각과 적용 배율이에요. 빈 파견 시점(투입할 재고가 없던 시점)은 표시하지 않아요.</p>
+          <div id="timelineTable"></div>
+        </div>
+      </div>
+
+      <p class="footer-note">
+        더 코지 플로리스트 길드 &lt;백야&gt; 제작 ·
+        <a href="index.html">다른 도구 보기</a>
+      </p>
+    </div>
+
+    <script>
+      /* ==========================================================
+         상수
+         ========================================================== */
+      const API_URL = "https://cozytools-backend.saeunezip.workers.dev";
+      const GRADE_INFO = {
+        SSR: { coin: 4, hours: 2 },
+        SR: { coin: 3, hours: 1.5 },
+        R: { coin: 2, hours: 1 },
+      };
+      const GRADES = ["SSR", "SR", "R"];
+      const BONUS_MULT = 2;
+      const DAILY_CAP = { free: 12, pass: 30 };
+      const FRIEND_MAX = 4;
+      const SLOT_MIN = 2,
+        SLOT_MAX = 5,
+        SLOT_OPTIONS = [2, 3, 4, 5];
+      const BATCH_MAX = 12;
+      const ACTIVITY_START_H = 8,
+        ACTIVITY_END_H = 24; // KST 고정
+
+      /* ==========================================================
+         KST 헬퍼 — UTC+9 고정 오프셋. new Date()의 로컬 타임존에 의존하지 않는다.
+         ========================================================== */
+      const KST_OFFSET_MS = 9 * 3600 * 1000;
+      function toKST(date) {
+        // 반환된 Date의 getUTC* 필드를 읽으면 KST 벽시계 값이 나온다.
+        return new Date(date.getTime() + KST_OFFSET_MS);
+      }
+      function fromKSTFields(y, m1, d, h, min, sec) {
+        // m1은 1-based 월. day/hour 오버플로는 Date.UTC가 알아서 다음 달/시로 넘겨준다.
+        return new Date(Date.UTC(y, m1 - 1, d, h || 0, min || 0, sec || 0) - KST_OFFSET_MS);
+      }
+      function pad2(n) {
+        return String(n).padStart(2, "0");
+      }
+      function kstDateString(date) {
+        const k = toKST(date);
+        return k.getUTCFullYear() + "-" + pad2(k.getUTCMonth() + 1) + "-" + pad2(k.getUTCDate());
+      }
+      function parseYMD(s) {
+        const [y, m, d] = s.split("-").map(Number);
+        return { y, m, d };
+      }
+      function ymdToKSTInstant(ymd, h, min) {
+        const { y, m, d } = parseYMD(ymd);
+        return fromKSTFields(y, m, d, h || 0, min || 0, 0);
+      }
+      function nextMidnightKST(date) {
+        const k = toKST(date);
+        return fromKSTFields(k.getUTCFullYear(), k.getUTCMonth() + 1, k.getUTCDate() + 1, 0, 0, 0);
+      }
+      function nextRotationBoundary(now) {
+        const k = toKST(now);
+        const dow = k.getUTCDay(); // 0 = 일요일
+        const daysToAdd = (7 - dow) % 7;
+        let boundary = fromKSTFields(k.getUTCFullYear(), k.getUTCMonth() + 1, k.getUTCDate() + daysToAdd, 0, 0, 0);
+        if (boundary.getTime() <= now.getTime()) boundary = new Date(boundary.getTime() + 7 * 86400000);
+        return boundary;
+      }
+      function bonusDeadline(boundary, grade) {
+        return new Date(boundary.getTime() - GRADE_INFO[grade].hours * 3600000);
+      }
+      function daysUntilBoundaryMidnights(now, boundary) {
+        let d = 0;
+        let cursor = nextMidnightKST(now);
+        while (cursor.getTime() < boundary.getTime()) {
+          d++;
+          cursor = new Date(cursor.getTime() + 86400000);
+        }
+        return d;
+      }
+      function fmtDuration(ms) {
+        if (ms < 0) ms = 0;
+        const totalSec = Math.floor(ms / 1000);
+        const days = Math.floor(totalSec / 86400);
+        const h = Math.floor((totalSec % 86400) / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        if (days > 0) return days + "일 " + pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+        return pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+      }
+      function fmtKSTClock(date) {
+        const k = toKST(date);
+        const WD = ["일", "월", "화", "수", "목", "금", "토"];
+        return (
+          (k.getUTCMonth() + 1) + "/" + k.getUTCDate() + "(" + WD[k.getUTCDay()] + ") " +
+          pad2(k.getUTCHours()) + ":" + pad2(k.getUTCMinutes())
+        );
+      }
+      function escapeHtml(s) {
+        const div = document.createElement("div");
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      /* ==========================================================
+         상태
+         ========================================================== */
+      let SEASONS = [];
+      let SEASON = null; // 최신 시즌
+      let CUR_WEEK = 1;
+      let SOUL_MAP = {}; // name -> {name, grade, dorazyId}
+      let state = {
+        grade: localStorage.getItem("starsoul_grade") || "SSR",
+        stock: Number(localStorage.getItem("starsoul_stock")) || 0,
+        path: localStorage.getItem("starsoul_path") || "free",
+        slots: Number(localStorage.getItem("starsoul_slots")) || 5,
+        k: Number(localStorage.getItem("starsoul_k")) || 3,
+        rate: Number(localStorage.getItem("starsoul_rate")) || 100,
+        friend: Number(localStorage.getItem("starsoul_friend")) || 0,
+      };
+
+      /* ==========================================================
+         데이터 로딩 + ① 보너스 카드 + 폴백
+         ========================================================== */
+      async function loadSeasons() {
+        try {
+          const res = await fetch(API_URL + "/seasons");
+          const data = await res.json();
+          if (!data.ok) throw new Error(data.error || "불러오기 실패");
+          SEASONS = data.seasons || [];
+          SEASON = SEASONS.length ? SEASONS[SEASONS.length - 1] : null;
+          if (SEASON) {
+            SOUL_MAP = {};
+            SEASON.souls.forEach(function (s) {
+              SOUL_MAP[s.name] = s;
+            });
+          }
+        } catch (err) {
+          SEASONS = [];
+          SEASON = null;
+        }
+        recalcAll();
+      }
+
+      function soulImgError(img, grade) {
+        const span = document.createElement("span");
+        span.className = "soul-badge grade-" + grade;
+        span.textContent = grade;
+        img.replaceWith(span);
+      }
+
+      function renderSoulThumb(name) {
+        const soul = SOUL_MAP[name];
+        if (!soul) return '<div class="soul-thumb"><span class="soul-badge grade-R">?</span><div class="soul-name">' + escapeHtml(name) + "</div></div>";
+        const inner = soul.dorazyId
+          ? '<img src="https://dorazy.art/images/t/' + encodeURIComponent(soul.dorazyId) + '.webp" onerror="soulImgError(this,\'' + soul.grade + "')\" />"
+          : '<span class="soul-badge grade-' + soul.grade + '">' + soul.grade + "</span>";
+        return '<div class="soul-thumb">' + inner + '<div class="soul-name">' + escapeHtml(soul.name) + "</div></div>";
+      }
+
+      function fallbackKey(week) {
+        return "starsoul_fallback::" + SEASON.id + "::" + week;
+      }
+      function getBonusForWeek(week) {
+        const slot = SEASON.bonus.find(function (b) {
+          return b.week === week;
+        });
+        if (slot && slot.souls) return slot.souls;
+        const saved = localStorage.getItem(fallbackKey(week));
+        return saved ? JSON.parse(saved) : null;
+      }
+
+      function renderBonusCard() {
+        const box = document.getElementById("bonusCard");
+        if (!SEASON) {
+          box.innerHTML =
+            '<div class="empty-msg" style="color:#d7ddec">등록된 시즌 데이터가 없어요. register.html에서 시즌을 등록해 주세요.<br/>(보너스 정보 없이도 아래 계산은 그대로 동작해요)</div>';
+          return;
+        }
+        const now = new Date();
+        const boundary = nextRotationBoundary(now);
+        const seasonEnd = ymdToKSTInstant(SEASON.start, 0, 0);
+        const seasonEndTs = new Date(seasonEnd.getTime() + SEASON.weeks * 7 * 86400000);
+        CUR_WEEK = currentWeekOf(SEASON, now);
+        const bonusNames = getBonusForWeek(CUR_WEEK);
+
+        let html = '<div class="bc-top"><h3>이번 주 보너스</h3><span class="bc-week">시즌 ' + CUR_WEEK + "주차 / " + SEASON.weeks + "</span></div>";
+
+        if (bonusNames) {
+          html += '<div class="soul-row">' + bonusNames.map(renderSoulThumb).join("") + "</div>";
+        } else {
+          html +=
+            '<div class="empty-msg" style="color:#d7ddec; padding:8px 0;">이번 주 보너스가 아직 등록되지 않았어요. 아래에서 3종을 직접 골라주세요.</div>' +
+            '<div id="fallbackBox"></div>';
+        }
+
+        html +=
+          '<div class="countdown-row"><span>다음 로테이션까지</span><b id="cdRotation"></b></div>' +
+          '<div class="countdown-row"><span>시즌 종료까지</span><b id="cdSeason"></b></div>' +
+          '<div class="bc-updated">일요일 00:00 KST 기준 · 획득 상한도 같이 초기화' +
+          (bonusNames ? "" : "") +
+          "</div>";
+
+        box.innerHTML = html;
+        window.__boundary = boundary;
+        window.__seasonEndTs = seasonEndTs;
+
+        if (!bonusNames) renderFallbackPicker();
+      }
+
+      function renderFallbackPicker() {
+        const box = document.getElementById("fallbackBox");
+        if (!box || !SEASON) return;
+        box.innerHTML =
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' +
+          SEASON.souls
+            .map(function (s) {
+              return (
+                '<label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);padding:6px 9px;border-radius:8px;font-size:12px;cursor:pointer;">' +
+                '<input type="checkbox" value="' + escapeHtml(s.name) + '" onchange="onFallbackToggle(this)" />' +
+                escapeHtml(s.name) + " (" + s.grade + ")" +
+                "</label>"
+              );
+            })
+            .join("") +
+          "</div>" +
+          '<div id="fallbackMsg" style="font-size:12px;color:#ffd54f;"></div>';
+      }
+
+      function onFallbackToggle(checkbox) {
+        const checked = Array.from(document.querySelectorAll("#fallbackBox input:checked"));
+        if (checked.length > 3) {
+          checkbox.checked = false;
+          document.getElementById("fallbackMsg").textContent = "3종만 선택할 수 있어요.";
+          return;
+        }
+        if (checked.length === 3) {
+          const names = checked.map(function (el) {
+            return el.value;
+          });
+          localStorage.setItem(fallbackKey(CUR_WEEK), JSON.stringify(names));
+          document.getElementById("fallbackMsg").textContent = "선택 완료! (다음 로테이션까지 유지돼요)";
+          renderBonusCard();
+          recalcAll();
+        } else {
+          document.getElementById("fallbackMsg").textContent = "";
+        }
+      }
+
+      function currentWeekOf(season, now) {
+        const start = ymdToKSTInstant(season.start, 0, 0);
+        const diffDays = Math.floor((now.getTime() - start.getTime()) / 86400000);
+        let week = Math.floor(diffDays / 7) + 1;
+        if (week < 1) week = 1;
+        if (week > season.weeks) week = season.weeks;
+        return week;
+      }
+
+      function isBonusGrade(grade) {
+        if (!SEASON) return false;
+        const names = getBonusForWeek(CUR_WEEK);
+        if (!names) return false;
+        return names.some(function (n) {
+          return SOUL_MAP[n] && SOUL_MAP[n].grade === grade;
+        });
+      }
+
+      /* ==========================================================
+         ② 마감 카운트다운
+         ========================================================== */
+      function renderDeadline() {
+        const area = document.getElementById("deadlineArea");
+        const now = new Date();
+        const boundary = window.__boundary || nextRotationBoundary(now);
+        const grade = state.grade;
+        const deadline = bonusDeadline(boundary, grade);
+        const bonusNow = isBonusGrade(grade);
+
+        let html = "";
+        if (bonusNow && now.getTime() < deadline.getTime()) {
+          html =
+            '<div class="deadline-card hot">⏳ <b>' + grade + '</b> 보너스 마감까지 <b id="cdDeadline"></b> (' +
+            fmtKSTClock(deadline) + " KST)<br/>" +
+            "이 시각 이후에 걸면 완료가 다음 주로 넘어가 2배를 못 받아요. 마감 전까지 최대한 많이 태우는 게 이득이에요.</div>";
+        } else if (bonusNow) {
+          html =
+            '<div class="deadline-card cool">⏰ 마감이 지났어요. 지금 ' + grade + '을(를) 걸면 완료가 다음 로테이션으로 넘어가요.<br/>' +
+            "다음 주에도 " + grade + "이 보너스라면 2배가 적용돼요 (아니어도 손해는 없어요). 다음 주 보너스는 게임이 미리 보여주지 않아 확인은 불가능해요.</div>";
+        } else {
+          html =
+            '<div class="deadline-card cool">이번 주는 ' + grade + " 보너스가 아니에요. 비보너스 주 말미에는 완료를 다음 주로 넘겨도 손해가 없어요.</div>";
+        }
+        area.innerHTML = html;
+      }
+
+      /* ==========================================================
+         입력부 렌더 (탭들)
+         ========================================================== */
+      function buildTabs() {
+        document.getElementById("gradeTabs").innerHTML = GRADES.map(function (g) {
+          return '<button data-g="' + g + '" onclick="setState(\'grade\',\'' + g + '\')">' + g + "</button>";
+        }).join("");
+        document.getElementById("pathTabs").innerHTML =
+          '<button data-p="free" onclick="setState(\'path\',\'free\')">무료 상한 12/일</button>' +
+          '<button data-p="pass" onclick="setState(\'path\',\'pass\')">패스권 상한 30/일</button>';
+        document.getElementById("slotTabs").innerHTML = SLOT_OPTIONS.map(function (n) {
+          return '<button data-s="' + n + '" onclick="setState(\'slots\',' + n + ')">' + n + "</button>";
+        }).join("");
+      }
+
+      function syncTabs() {
+        document.querySelectorAll("#gradeTabs button").forEach(function (b) {
+          b.classList.toggle("on", b.dataset.g === state.grade);
+        });
+        document.querySelectorAll("#pathTabs button").forEach(function (b) {
+          b.classList.toggle("on", b.dataset.p === state.path);
+        });
+        document.querySelectorAll("#slotTabs button").forEach(function (b) {
+          b.classList.toggle("on", Number(b.dataset.s) === state.slots);
+        });
+        document.getElementById("inStock").value = state.stock;
+        document.getElementById("inK").value = state.k;
+        document.getElementById("inRate").value = state.rate;
+        document.getElementById("inFriend").value = state.friend;
+        document.getElementById("friendVal").textContent = state.friend;
+      }
+
+      function setState(key, val) {
+        state[key] = val;
+        if (key !== "grade") localStorage.setItem("starsoul_" + key, val);
+        else localStorage.setItem("starsoul_grade", val);
+        syncTabs();
+        recalcAll();
+      }
+
+      function wireInputs() {
+        document.getElementById("inStock").addEventListener("input", function (e) {
+          state.stock = Math.max(0, Math.min(999999, parseInt(e.target.value, 10) || 0));
+          localStorage.setItem("starsoul_stock", state.stock);
+          recalcAll();
+        });
+        document.getElementById("inK").addEventListener("input", function (e) {
+          state.k = Math.max(1, Math.min(6, parseInt(e.target.value, 10) || 1));
+          localStorage.setItem("starsoul_k", state.k);
+          recalcAll();
+        });
+        document.getElementById("inTodayCap").addEventListener("input", function (e) {
+          const cap = DAILY_CAP[state.path];
+          const v = Math.max(0, Math.min(cap, parseInt(e.target.value, 10) || 0));
+          localStorage.setItem("starsoul_todayCap", v);
+          localStorage.setItem("starsoul_todayCapDate", kstDateString(new Date()));
+          recalcAll();
+        });
+        document.getElementById("inRate").addEventListener("input", function (e) {
+          state.rate = Math.max(1, Math.min(100, parseInt(e.target.value, 10) || 100));
+          localStorage.setItem("starsoul_rate", state.rate);
+          recalcAll();
+        });
+        document.getElementById("inFriend").addEventListener("input", function (e) {
+          state.friend = Math.max(0, Math.min(FRIEND_MAX, parseInt(e.target.value, 10) || 0));
+          document.getElementById("friendVal").textContent = state.friend;
+          localStorage.setItem("starsoul_friend", state.friend);
+          recalcAll();
+        });
+      }
+
+      function getTodayCap() {
+        const today = kstDateString(new Date());
+        const savedDate = localStorage.getItem("starsoul_todayCapDate");
+        if (savedDate !== today) {
+          localStorage.setItem("starsoul_todayCapDate", today);
+          localStorage.setItem("starsoul_todayCap", 0);
+          return 0;
+        }
+        return Math.max(0, Math.min(DAILY_CAP[state.path], Number(localStorage.getItem("starsoul_todayCap")) || 0));
+      }
+
+      function toggleAdvanced() {
+        const body = document.getElementById("advancedBody");
+        const open = body.classList.toggle("open");
+        document.getElementById("advArrow").classList.toggle("open", open);
+      }
+      function toggleTimeline() {
+        const body = document.getElementById("timelineBody");
+        const open = body.classList.toggle("open");
+        document.getElementById("tlArrow").classList.toggle("open", open);
+      }
+
+      /* ==========================================================
+         시뮬레이션 (3단계) — 이산 시간축, 배치 분할은 최적화하지 않는다 (핵심 결과 2번)
+         ========================================================== */
+      function buildDispatchTimes(now, boundary, k) {
+        const times = [];
+        const todayStr = kstDateString(now);
+        let cursorDay = now;
+        let guard = 0;
+        while (guard++ < 60) {
+          const dStr = kstDateString(cursorDay);
+          const dayStart = ymdToKSTInstant(dStr, 0, 0);
+          for (let i = 0; i < k; i++) {
+            const hourOffset = ACTIVITY_START_H + (i * (ACTIVITY_END_H - ACTIVITY_START_H)) / k;
+            const t = new Date(dayStart.getTime() + hourOffset * 3600000);
+            if (t.getTime() >= now.getTime() && t.getTime() < boundary.getTime()) times.push(t);
+          }
+          cursorDay = new Date(dayStart.getTime() + 86400000);
+          if (cursorDay.getTime() >= boundary.getTime()) break;
+        }
+        times.sort(function (a, b) {
+          return a.getTime() - b.getTime();
+        });
+        return times;
+      }
+
+      function simulate(opts) {
+        const { grade, N0, dailyCapEff, todayCapRemaining, s, k, now, boundary, bonusNow, deadline } = opts;
+        const info = GRADE_INFO[grade];
+        const dispatchTimes = buildDispatchTimes(now, boundary, k);
+        const todayStr = kstDateString(now);
+
+        let stock = N0 + todayCapRemaining;
+        const addedDays = { [todayStr]: true };
+        const slotEnds = new Array(s).fill(null);
+
+        let dispatchedTotal = 0;
+        let capacityTotal = 0;
+        let coinBonus = 0,
+          coinPlain = 0,
+          coinBorderMin = 0,
+          coinBorderMax = 0;
+        let deployedBeforeDeadline = 0;
+        const timeline = [];
+
+        dispatchTimes.forEach(function (t) {
+          const dStr = kstDateString(t);
+          if (!addedDays[dStr]) {
+            addedDays[dStr] = true;
+            stock += dailyCapEff;
+          }
+          for (let i = 0; i < s; i++) {
+            if (slotEnds[i] !== null && slotEnds[i].getTime() <= t.getTime()) slotEnds[i] = null;
+          }
+          const freeSlots = slotEnds.filter(function (e) {
+            return e === null;
+          }).length;
+          capacityTotal += freeSlots * BATCH_MAX;
+
+          const toDeploy = Math.min(stock, freeSlots * BATCH_MAX);
+          if (toDeploy > 0) {
+            stock -= toDeploy;
+            dispatchedTotal += toDeploy;
+            const completeAt = new Date(t.getTime() + info.hours * 3600000);
+            let remaining = toDeploy;
+            for (let i = 0; i < s && remaining > 0; i++) {
+              if (slotEnds[i] === null) {
+                slotEnds[i] = completeAt;
+                remaining -= Math.min(BATCH_MAX, remaining);
+              }
+            }
+            let mult;
+            if (completeAt.getTime() < boundary.getTime()) {
+              if (bonusNow) {
+                coinBonus += toDeploy * info.coin * BONUS_MULT;
+                mult = "보너스 " + BONUS_MULT + "배";
+              } else {
+                coinPlain += toDeploy * info.coin;
+                mult = "미적용 1배";
+              }
+              if (bonusNow && t.getTime() <= deadline.getTime()) deployedBeforeDeadline += toDeploy;
+            } else {
+              coinBorderMin += toDeploy * info.coin;
+              coinBorderMax += toDeploy * info.coin * BONUS_MULT;
+              mult = "경계 넘김";
+            }
+            timeline.push({ t, count: toDeploy, completeAt, mult });
+          }
+        });
+
+        return {
+          dispatchedTotal,
+          capacityTotal,
+          coinBonus,
+          coinPlain,
+          coinBorderMin,
+          coinBorderMax,
+          deployedBeforeDeadline,
+          timeline,
+          carryover: N0 + todayCapRemaining - dispatchedTotal + (dailyCapEff * (Object.keys(addedDays).length - 1)),
+        };
+      }
+
+      /* ==========================================================
+         ④ 결과부 렌더 + ⑤ 스톡 전략
+         ========================================================== */
+      function recalcAll() {
+        renderBonusCard();
+        renderDeadline();
+        runCalculation();
+      }
+
+      function runCalculation() {
+        const now = new Date();
+        const boundary = window.__boundary || nextRotationBoundary(now);
+        const D = daysUntilBoundaryMidnights(now, boundary);
+        const grade = state.grade;
+        const dailyCap = DAILY_CAP[state.path];
+        const dailyCapEff = dailyCap * (state.rate / 100);
+        const todayCapRemaining = getTodayCap();
+        document.getElementById("inTodayCap").max = dailyCap;
+        if (Number(document.getElementById("inTodayCap").value) > dailyCap) document.getElementById("inTodayCap").value = dailyCap;
+        document.getElementById("inTodayCap").value = todayCapRemaining;
+
+        const bonusNow = isBonusGrade(grade);
+        const deadline = bonusDeadline(boundary, grade);
+
+        const maxSecureTotal = state.stock + todayCapRemaining + dailyCapEff * D;
+        const friendEstimate = state.friend * (D + 1);
+
+        const sim = simulate({
+          grade, N0: state.stock, dailyCapEff, todayCapRemaining,
+          s: state.slots, k: state.k, now, boundary, bonusNow, deadline,
+        });
+
+        const utilization = sim.capacityTotal > 0 ? (sim.dispatchedTotal / sim.capacityTotal) * 100 : 0;
+        const totalCoin = sim.coinBonus + sim.coinPlain;
+
+        let html =
+          '<div class="result-box">' +
+          '<div class="result-title">이번 로테이션 종료까지 (' + fmtDuration(boundary.getTime() - now.getTime()) + ' 남음)</div>' +
+          '<div class="result-row"><span>최대 확보 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(maxSecureTotal).toLocaleString() + '마리</b></div>' +
+          '<div class="result-row sub"><span>보유 ' + state.stock.toLocaleString() + ' + 상한 기준 획득 ' + Math.round(maxSecureTotal - state.stock).toLocaleString() + '</span></div>' +
+          '<div class="result-row"><span>최대 파견 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(sim.dispatchedTotal).toLocaleString() + '마리</b></div>' +
+          '<div class="result-row sub"><span>슬롯 가동률 ' + utilization.toFixed(0) + '%</span></div>' +
+          '<div class="result-row"><span>이월 재고</span><b>' + Math.max(0, Math.round(sim.carryover)).toLocaleString() + '마리</b></div>' +
+          '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' + Math.round(totalCoin).toLocaleString() + '코인</b></div>' +
+          '<div class="result-row sub"><span>└ 보너스 적용</span><b>' + Math.round(sim.coinBonus).toLocaleString() + '</b></div>' +
+          '<div class="result-row sub"><span>└ 미적용</span><b>' + Math.round(sim.coinPlain).toLocaleString() + '</b></div>' +
+          '<div class="result-row sub"><span>└ 경계 넘김 (다음 주 보너스 여부에 따라)</span><b>' +
+            Math.round(sim.coinBorderMin).toLocaleString() + ' ~ ' + Math.round(sim.coinBorderMax).toLocaleString() + '</b></div>';
+
+        if (bonusNow && now.getTime() < deadline.getTime()) {
+          html += '<div class="result-row"><span>마감 전 투입 가능</span><b>' + Math.round(sim.deployedBeforeDeadline).toLocaleString() + '마리</b></div>';
+        }
+        html += "</div>";
+
+        html +=
+          '<div class="estimate-box">' +
+          '친구 소울 ' + state.friend + '개/일 기준 최대 +' + Math.round(friendEstimate).toLocaleString() + '마리 → +' +
+          Math.round(friendEstimate * GRADE_INFO[grade].coin).toLocaleString() + '코인' +
+          '<br/><span style="font-size:11px;">친구가 그 등급을 심었는지에 따라 달라지는 참고 수치예요. 위 합계에는 포함되지 않았어요.</span>' +
+          "</div>";
+
+        // 경고
+        let warnings = "";
+        if (SEASON) {
+          const seasonEndTs = window.__seasonEndTs;
+          const daysLeft = Math.ceil((seasonEndTs.getTime() - now.getTime()) / 86400000);
+          if (daysLeft <= 28) {
+            warnings +=
+              "⚠️ 시즌 종료(" + kstDateString(seasonEndTs) + ")까지 " + daysLeft + "일 남았어요. 이 시즌 안에 " + grade +
+              " 보너스 주가 오지 않으면 쟁여둔 소울은 2배를 받을 수 없어요. (전 시즌 소울은 파견은 되지만 보너스 대상이 아니에요)<br/>";
+          }
+        }
+        const weeklyCapacity = 7 * state.k * BATCH_MAX * state.slots;
+        if (maxSecureTotal > weeklyCapacity) {
+          warnings +=
+            "⚠️ 현재 설정(슬롯 " + state.slots + "개 / 하루 " + state.k + "회)으로는 보너스 주 7일 동안 최대 " + weeklyCapacity.toLocaleString() +
+            "마리까지만 소진할 수 있어요. 상한 기준 예상 재고 " + Math.round(maxSecureTotal).toLocaleString() + "마리 중 " +
+            Math.round(maxSecureTotal - weeklyCapacity).toLocaleString() + "마리는 넘칠 수 있어요.";
+        }
+        if (warnings) html += '<div class="info-box" style="margin-top:12px; margin-bottom:0;">' + warnings + "</div>";
+
+        document.getElementById("resultsArea").innerHTML = html;
+
+        renderStockStrategy(bonusNow, maxSecureTotal, grade);
+        renderTimeline(sim.timeline);
+      }
+
+      function renderStockStrategy(bonusNow, maxSecureTotal, grade) {
+        const area = document.getElementById("stockStrategyArea");
+        if (bonusNow) {
+          area.innerHTML = "";
+          return;
+        }
+        const coin = GRADE_INFO[grade].coin;
+        const planA = maxSecureTotal * coin;
+        const planB = maxSecureTotal * coin * BONUS_MULT;
+        area.innerHTML =
+          '<div class="panel">' +
+          '<h3>스톡 전략 비교</h3>' +
+          '<p class="desc">이번 주는 ' + grade + ' 보너스가 아니에요. "만약 다음에 보너스가 오면"을 가정한 조건부 비교예요 — 다음 주 보너스는 게임이 미리 보여주지 않아서 실제로 올지는 알 수 없어요.</p>' +
+          '<div class="result-box">' +
+          '<div class="result-row"><span>A안 — 지금 다 파견</span><b>' + Math.round(planA).toLocaleString() + '코인</b></div>' +
+          '<div class="result-row"><span>B안 — 다음 보너스 주까지 쟁여두기</span><b>' + Math.round(planB).toLocaleString() + '코인</b></div>' +
+          '<div class="result-row result-total"><span>차이 (B안이 보너스일 경우)</span><b>+' + Math.round(planB - planA).toLocaleString() + '코인</b></div>' +
+          "</div></div>";
+      }
+
+      function renderTimeline(timeline) {
+        const box = document.getElementById("timelineTable");
+        if (!timeline.length) {
+          box.innerHTML = '<div class="empty-msg">표시할 파견 내역이 없어요.</div>';
+          return;
+        }
+        box.innerHTML =
+          '<table class="timeline"><thead><tr><th>시작</th><th>완료</th><th>마리</th><th>배율</th></tr></thead><tbody>' +
+          timeline
+            .map(function (row) {
+              return (
+                "<tr><td>" + fmtKSTClock(row.t) + "</td><td>" + fmtKSTClock(row.completeAt) + "</td><td>" +
+                row.count + "</td><td>" + row.mult + "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table>";
+      }
+
+      /* ==========================================================
+         1초 카운트다운
+         ========================================================== */
+      function tickCountdowns() {
+        const now = new Date();
+        const boundary = window.__boundary;
+        if (boundary) {
+          const el = document.getElementById("cdRotation");
+          if (el) el.textContent = fmtDuration(boundary.getTime() - now.getTime());
+          if (boundary.getTime() <= now.getTime()) recalcAll();
+        }
+        const seasonEndTs = window.__seasonEndTs;
+        if (seasonEndTs) {
+          const el2 = document.getElementById("cdSeason");
+          if (el2) el2.textContent = fmtDuration(seasonEndTs.getTime() - now.getTime());
+        }
+        const dl = document.getElementById("cdDeadline");
+        if (dl) {
+          const boundary2 = window.__boundary || nextRotationBoundary(now);
+          const deadline = bonusDeadline(boundary2, state.grade);
+          dl.textContent = fmtDuration(deadline.getTime() - now.getTime());
+          if (deadline.getTime() <= now.getTime()) renderDeadline();
+        }
+      }
+
+      /* ==========================================================
+         시작
+         ========================================================== */
+      buildTabs();
+      syncTabs();
+      wireInputs();
+      document.getElementById("inTodayCap").value = getTodayCap();
+      loadSeasons();
+      setInterval(tickCountdowns, 1000);
+    </script>
+  </body>
+</html>

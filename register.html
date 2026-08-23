@@ -226,6 +226,85 @@
       .hidden {
         display: none !important;
       }
+
+      /* 스타소울 — 시즌 등록 */
+      .soul-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .soul-row .badge-grade {
+        flex: none;
+        width: 40px;
+        text-align: center;
+        font-size: 11.5px;
+        font-weight: bold;
+        color: #fff;
+        border-radius: 8px;
+        padding: 8px 0;
+      }
+      .badge-grade.SSR {
+        background: #e3a23c;
+      }
+      .badge-grade.SR {
+        background: #4a90d9;
+      }
+      .badge-grade.R {
+        background: #90a4ae;
+      }
+      .soul-row input.sr-name {
+        flex: 1.3;
+        min-width: 0;
+        padding: 9px 10px;
+        border: 1px solid #dfe3e6;
+        border-radius: 8px;
+        font-size: 13.5px;
+      }
+      .soul-row input.sr-dorazy {
+        flex: 1;
+        min-width: 0;
+        padding: 9px 10px;
+        border: 1px solid #dfe3e6;
+        border-radius: 8px;
+        font-size: 12.5px;
+      }
+
+      /* 스타소울 — 보너스 체크리스트 (calc.html의 grade-item과 같은 톤) */
+      .grade-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .grade-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 11px;
+        border: 2px solid #eceff1;
+        border-radius: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .grade-item.on {
+        border-color: #1f3b73;
+        background: #f3f6fc;
+      }
+      .grade-item input {
+        width: 17px;
+        height: 17px;
+        accent-color: #1f3b73;
+      }
+      .grade-item .gname {
+        font-weight: bold;
+        font-size: 14px;
+        flex: 1;
+      }
+      .grade-item .gprob {
+        font-size: 12px;
+        color: #90a4ae;
+      }
     </style>
   </head>
   <body>
@@ -330,6 +409,46 @@
           <h3>등록된 일정 (<span id="countLabel">0</span>개)</h3>
           <div id="eventList"></div>
         </div>
+
+        <div class="panel">
+          <h3>스타소울 — 새 시즌 등록</h3>
+          <p class="desc">
+            시즌 시작일(일요일)과 그 시즌의 짝꿍 꽃 12종(SSR 2 / SR 5 / R 5)을 등록해요.
+            dorazy.art ID는 몰라도 비워두면 등급 배지로 대신 표시돼요.
+          </p>
+          <div class="field">
+            <label>시즌 시작일 (일요일)</label>
+            <input type="date" id="ssStart" />
+          </div>
+          <div id="ssSoulRows"></div>
+          <button class="btn" id="ssSubmitBtn" onclick="submitSeason()">시즌 등록</button>
+          <div id="ssMsg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>스타소울 — 주간 보너스 선택</h3>
+          <p class="desc">등록된 시즌 중 하나를 골라 그 주차의 보너스 소울 3종을 체크해요.</p>
+          <div class="field-row">
+            <div class="field">
+              <label>시즌</label>
+              <select id="sbSeason" onchange="onSeasonChange()"></select>
+            </div>
+            <div class="field">
+              <label>주차</label>
+              <select id="sbWeek" onchange="renderBonusChecklist()">
+                <option value="1">1주차</option>
+                <option value="2">2주차</option>
+                <option value="3">3주차</option>
+                <option value="4">4주차</option>
+              </select>
+            </div>
+          </div>
+          <div id="sbChecklist" class="grade-list"></div>
+          <button class="btn" onclick="submitBonus()">보너스 저장</button>
+          <div id="sbMsg"></div>
+          <div class="desc" style="margin-top: 14px; margin-bottom: 6px">이미 저장된 주차별 보너스</div>
+          <div id="sbSavedList"></div>
+        </div>
       </div>
     </div>
 
@@ -380,6 +499,7 @@
         document.getElementById("gatePanel").classList.add("hidden");
         document.getElementById("mainArea").classList.remove("hidden");
         loadEvents();
+        loadSeasons();
       }
 
       function setType(type) {
@@ -538,6 +658,232 @@
       document.getElementById("pwInput").addEventListener("keydown", function (e) {
         if (e.key === "Enter") unlock();
       });
+
+      /* ==========================================================
+         스타소울 — 시즌 등록 / 주간 보너스 선택
+         cozytools-worker 의 /seasons 엔드포인트를 씀 (이벤트 API와 별개).
+         ========================================================== */
+      const SEASONS_API = API_URL + "/seasons";
+      const SEASON_GRADE_COUNTS = { SSR: 2, SR: 5, R: 5 };
+      let ALL_SEASONS = [];
+
+      function buildSeasonRows() {
+        const grades = [];
+        Object.keys(SEASON_GRADE_COUNTS).forEach(function (g) {
+          for (let i = 0; i < SEASON_GRADE_COUNTS[g]; i++) grades.push(g);
+        });
+        const box = document.getElementById("ssSoulRows");
+        box.dataset.grades = JSON.stringify(grades);
+        box.innerHTML = grades
+          .map(function (g, i) {
+            return (
+              '<div class="soul-row">' +
+              '<span class="badge-grade ' +
+              g +
+              '">' +
+              g +
+              "</span>" +
+              '<input type="text" class="sr-name" id="ssName' +
+              i +
+              '" placeholder="꽃 이름" />' +
+              '<input type="text" class="sr-dorazy" id="ssDorazy' +
+              i +
+              '" placeholder="dorazyId (선택, 예: F0123)" />' +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      async function submitSeason() {
+        const start = document.getElementById("ssStart").value;
+        if (!start) {
+          showMsg("ssMsg", "시즌 시작일을 입력해 주세요.", false);
+          return;
+        }
+        if (new Date(start + "T00:00:00").getDay() !== 0) {
+          showMsg("ssMsg", "시즌 시작일은 일요일이어야 합니다.", false);
+          return;
+        }
+
+        const grades = JSON.parse(document.getElementById("ssSoulRows").dataset.grades || "[]");
+        const souls = [];
+        for (let i = 0; i < grades.length; i++) {
+          const name = document.getElementById("ssName" + i).value.trim();
+          if (!name) {
+            showMsg("ssMsg", "꽃 이름을 12개 모두 입력해 주세요.", false);
+            return;
+          }
+          souls.push({
+            name: name,
+            grade: grades[i],
+            dorazyId: document.getElementById("ssDorazy" + i).value.trim(),
+          });
+        }
+
+        const btn = document.getElementById("ssSubmitBtn");
+        btn.disabled = true;
+        btn.textContent = "등록 중...";
+        try {
+          const res = await fetch(SEASONS_API, {
+            method: "POST",
+            body: JSON.stringify({ action: "addSeason", pw: pw, start: start, souls: souls }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            showMsg("ssMsg", "시즌을 등록했습니다.", true);
+            loadSeasons();
+          } else {
+            showMsg("ssMsg", data.error || "등록에 실패했습니다.", false);
+          }
+        } catch (err) {
+          showMsg("ssMsg", "서버에 연결하지 못했습니다: " + err.message, false);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "시즌 등록";
+        }
+      }
+
+      function currentWeekFor(season) {
+        const start = new Date(season.start + "T00:00:00");
+        const diffDays = Math.floor((new Date() - start) / 86400000);
+        let week = Math.floor(diffDays / 7) + 1;
+        if (week < 1) week = 1;
+        if (week > 4) week = 4;
+        return week;
+      }
+
+      function populateSeasonSelect() {
+        const sel = document.getElementById("sbSeason");
+        sel.innerHTML = ALL_SEASONS.map(function (s, idx) {
+          return '<option value="' + idx + '">' + s.start + " 시즌</option>";
+        }).join("");
+        if (ALL_SEASONS.length) {
+          sel.value = String(ALL_SEASONS.length - 1);
+          onSeasonChange();
+        } else {
+          document.getElementById("sbChecklist").innerHTML = '<div class="empty-msg">등록된 시즌이 없습니다.</div>';
+          document.getElementById("sbSavedList").innerHTML = "";
+        }
+      }
+
+      function onSeasonChange() {
+        const season = ALL_SEASONS[Number(document.getElementById("sbSeason").value)];
+        if (!season) return;
+        document.getElementById("sbWeek").value = String(currentWeekFor(season));
+        renderBonusChecklist();
+        renderSavedBonus(season);
+      }
+
+      function renderBonusChecklist() {
+        const season = ALL_SEASONS[Number(document.getElementById("sbSeason").value)];
+        if (!season) return;
+        const week = Number(document.getElementById("sbWeek").value);
+        const slot = season.bonus.find(function (b) {
+          return b.week === week;
+        });
+        const already = (slot && slot.souls) || [];
+        const box = document.getElementById("sbChecklist");
+        box.innerHTML = season.souls
+          .map(function (s) {
+            const on = already.indexOf(s.name) !== -1;
+            return (
+              '<label class="grade-item' +
+              (on ? " on" : "") +
+              '">' +
+              '<input type="checkbox" value="' +
+              escapeHtml(s.name) +
+              '" onchange="toggleBonusItem(this)"' +
+              (on ? " checked" : "") +
+              " />" +
+              '<span class="gname">' +
+              escapeHtml(s.name) +
+              "</span>" +
+              '<span class="gprob">' +
+              s.grade +
+              "</span>" +
+              "</label>"
+            );
+          })
+          .join("");
+      }
+
+      function toggleBonusItem(checkbox) {
+        checkbox.closest(".grade-item").classList.toggle("on", checkbox.checked);
+        const checked = document.querySelectorAll("#sbChecklist input:checked");
+        if (checked.length > 3) {
+          checkbox.checked = false;
+          checkbox.closest(".grade-item").classList.remove("on");
+          alert("보너스는 정확히 3종만 선택할 수 있어요.");
+        }
+      }
+
+      async function submitBonus() {
+        const season = ALL_SEASONS[Number(document.getElementById("sbSeason").value)];
+        if (!season) {
+          showMsg("sbMsg", "시즌을 선택해 주세요.", false);
+          return;
+        }
+        const week = Number(document.getElementById("sbWeek").value);
+        const checked = Array.from(document.querySelectorAll("#sbChecklist input:checked")).map(function (el) {
+          return el.value;
+        });
+        if (checked.length !== 3) {
+          showMsg("sbMsg", "정확히 3종을 선택해 주세요.", false);
+          return;
+        }
+
+        try {
+          const res = await fetch(SEASONS_API, {
+            method: "POST",
+            body: JSON.stringify({ action: "setBonus", pw: pw, seasonId: season.id, week: week, souls: checked }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            showMsg("sbMsg", "보너스를 저장했습니다.", true);
+            loadSeasons();
+          } else {
+            showMsg("sbMsg", data.error || "저장에 실패했습니다.", false);
+          }
+        } catch (err) {
+          showMsg("sbMsg", "서버에 연결하지 못했습니다: " + err.message, false);
+        }
+      }
+
+      function renderSavedBonus(season) {
+        if (!season) return;
+        const box = document.getElementById("sbSavedList");
+        box.innerHTML = season.bonus
+          .map(function (b) {
+            return (
+              '<div class="event-row"><div class="body">' +
+              '<div class="emeta">' +
+              b.week +
+              "주차 (" +
+              b.start +
+              ")</div>" +
+              '<div class="ename">' +
+              (b.souls ? b.souls.map(escapeHtml).join(", ") : "미정") +
+              "</div>" +
+              "</div></div>"
+            );
+          })
+          .join("");
+      }
+
+      async function loadSeasons() {
+        try {
+          const res = await fetch(SEASONS_API);
+          const data = await res.json();
+          if (!data.ok) throw new Error(data.error || "시즌 목록을 불러오지 못했습니다.");
+          ALL_SEASONS = data.seasons || [];
+          populateSeasonSelect();
+        } catch (err) {
+          document.getElementById("sbChecklist").innerHTML = '<div class="msg err">불러오기 실패: ' + err.message + "</div>";
+        }
+      }
+
+      buildSeasonRows();
     </script>
   </body>
 </html>
