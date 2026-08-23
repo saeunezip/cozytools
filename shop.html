@@ -498,27 +498,19 @@
             </label>
           </div>
 
-          <button class="accordion-head" onclick="toggleAdvanced()">
-            <h3 style="font-size: 13.5px">고급 설정</h3>
-            <span class="accordion-arrow" id="advArrow">▾</span>
-          </button>
-          <div id="advancedBody" class="accordion-body">
-            <div class="field-row" style="margin-top: 10px">
-              <div class="field">
-                <label>2x 소울당 코인</label>
-                <input type="number" id="inCoinX2" inputmode="numeric" min="1" value="7" />
-              </div>
-              <div class="field">
-                <label>1x 소울당 코인</label>
-                <input type="number" id="inCoinX1" inputmode="numeric" min="1" value="4" />
-              </div>
-            </div>
-            <div class="field-note">기본값은 "SSR 보너스 2주 + SR 보너스 2주" 관측치(2x=7) / SSR만 재배(1x=4) 기준이에요.</div>
+          <div class="field">
+            <label class="checkbox-field">
+              <input type="checkbox" id="inFriendInclude" />
+              <span>친구 소울 포함 (하루 4개 추가, 소울당 4코인으로 안전하게 계산)</span>
+            </label>
           </div>
 
           <div class="info-box" style="margin-top: 14px; margin-bottom: 0">
-            소울이 생기는 대로 바로 파견하는 기준이에요(쟁여두기 최적화 미반영). 친구 소울은 포함하지 않았고,
-            매일 획득 상한을 다 채운다고 가정한 <b>이론 최대치</b>예요. 슬롯이 2개뿐이면 이보다 적게 나올 수 있어요.
+            2x 요율(소울당 7코인)은 "SSR 보너스 2주 + SR 보너스 2주" 관측치예요 — (8+8+6+6)/4 = 7,
+            게임 오픈 이후 4개월간 이 패턴이 유지됐어요. 1x는 보너스를 안 노리므로 코인이 제일 높은 SSR만
+            재배한다고 가정해서 4코인이에요.<br /><br />
+            소울이 생기는 대로 바로 파견하는 기준이에요(쟁여두기 최적화 미반영). 매일 획득 상한을 다 채운다고
+            가정한 <b>이론 최대치</b>예요. 슬롯이 2개뿐이면 이보다 적게 나올 수 있어요.
           </div>
         </div>
 
@@ -602,11 +594,15 @@
          상수
          ========================================================== */
       const ANCHOR_START = "2026-08-23"; // 처녀자리 시작 (일요일, /seasons id와 동일)
-      const ANCHOR_INDEX = 5; // ZODIAC 배열에서 처녀자리의 인덱스
-      const ZODIAC = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
       const SEASON_DAYS = 28;
-      const GRACE_DAYS = 15; // 카운트다운 종료 후 유예 (⚠️ 관측치)
+      const GRACE_DAYS = 14; // 카운트다운 종료 후 유예 (확정 — 새우님 관측)
       const DAILY_CAP = { free: 12, pass: 30 };
+      // 요율 확정치. 게임 오픈 이후 4개월간 유지된 패턴이라 편집 가능하게 두지 않는다.
+      // 2x = "SSR 보너스 2주 + SR 보너스 2주" 평균: (8+8+6+6)/4 = 7
+      // 1x = 보너스를 안 노리므로 코인이 제일 높은 SSR만 재배: 4
+      const COIN_PER_SOUL = { x2: 7, x1: 4 };
+      const FRIEND_SOULS_PER_DAY = 4;
+      const FRIEND_COIN_PER_SOUL = 4; // 등급을 알 수 없어 안전하게 잡은 평균치
       const ANCHOR_MS = ymdToKSTInstant(ANCHOR_START, 0, 0).getTime();
 
       // dayNum: ANCHOR_START 당일이 0. KST 자정으로 정규화한 뒤 계산해야 하루 중
@@ -640,11 +636,11 @@
         path: localStorage.getItem("shop_path") || "pass",
         coins: Number(localStorage.getItem("shop_coins")) || 0,
         includeToday: localStorage.getItem("shop_includeToday") === "1",
-        coinX2: Number(localStorage.getItem("shop_coinX2")) || 7,
-        coinX1: Number(localStorage.getItem("shop_coinX1")) || 4,
+        friendInclude: localStorage.getItem("shop_friendInclude") === "1",
       };
       let seasonModes = JSON.parse(localStorage.getItem("shop_seasonModes") || "{}");
       let selected = JSON.parse(localStorage.getItem("shop_selected") || "[]");
+      let seasonNames = {}; // /seasons에서 불러온 { startYMD: name }, 로딩 전/실패 시 빈 객체
 
       /* ==========================================================
          ② 마감 입력
@@ -729,8 +725,7 @@
         });
         document.getElementById("inCoins").value = state.coins;
         document.getElementById("inIncludeToday").checked = state.includeToday;
-        document.getElementById("inCoinX2").value = state.coinX2;
-        document.getElementById("inCoinX1").value = state.coinX1;
+        document.getElementById("inFriendInclude").checked = state.friendInclude;
       }
 
       function setState(key, val) {
@@ -751,22 +746,11 @@
           localStorage.setItem("shop_includeToday", state.includeToday ? "1" : "0");
           recalc();
         });
-        document.getElementById("inCoinX2").addEventListener("input", function (e) {
-          state.coinX2 = Math.max(1, parseInt(e.target.value, 10) || 1);
-          localStorage.setItem("shop_coinX2", state.coinX2);
+        document.getElementById("inFriendInclude").addEventListener("change", function (e) {
+          state.friendInclude = e.target.checked;
+          localStorage.setItem("shop_friendInclude", state.friendInclude ? "1" : "0");
           recalc();
         });
-        document.getElementById("inCoinX1").addEventListener("input", function (e) {
-          state.coinX1 = Math.max(1, parseInt(e.target.value, 10) || 1);
-          localStorage.setItem("shop_coinX1", state.coinX1);
-          recalc();
-        });
-      }
-
-      function toggleAdvanced() {
-        const body = document.getElementById("advancedBody");
-        const open = body.classList.toggle("open");
-        document.getElementById("advArrow").classList.toggle("open", open);
       }
 
       /* ==========================================================
@@ -785,7 +769,6 @@
           const seasonStartDay = SEASON_DAYS * k;
           const startYMD = dayNumToYMD(seasonStartDay);
           const endYMD = dayNumToYMD(seasonStartDay + SEASON_DAYS - 1);
-          const idx = (((ANCHOR_INDEX + k) % 12) + 12) % 12;
           const days = Math.max(0, Math.min(lastDay, seasonStartDay + SEASON_DAYS - 1) - Math.max(firstDay, seasonStartDay) + 1);
           const partial = days < SEASON_DAYS;
           const note = k === kFirst && days < SEASON_DAYS - 0 && seasonStartDay < firstDay
@@ -793,7 +776,8 @@
             : k === kLast && partial
               ? "마감이 시즌 중간"
               : "";
-          seasons.push({ k, startYMD, endYMD, name: ZODIAC[idx], days, note });
+          // 이름은 register.html에서 등록한 실제 이벤트명을 쓴다 (/seasons). 아직 등록 안 됐으면 "(예정)".
+          seasons.push({ k, startYMD, endYMD, name: seasonNames[startYMD] || "(예정)", days, note });
         }
         return seasons;
       }
@@ -822,7 +806,7 @@
         box.innerHTML = seasons
           .map(function (s) {
             const mode = seasonModes[s.startYMD] || "x1";
-            const perSoul = mode === "x2" ? state.coinX2 : state.coinX1;
+            const perSoul = COIN_PER_SOUL[mode];
             const coin = perSoul * dailyCap * s.days;
             return (
               '<div class="season-row">' +
@@ -889,23 +873,25 @@
         let totalEarned = 0;
         const breakdown = seasons.map(function (s) {
           const mode = seasonModes[s.startYMD] || "x1";
-          const perSoul = mode === "x2" ? state.coinX2 : state.coinX1;
+          const perSoul = COIN_PER_SOUL[mode];
           const coin = perSoul * dailyCap * s.days;
           totalEarned += coin;
           return { name: s.name, days: s.days, mode: mode, coin: coin, startYMD: s.startYMD };
         });
 
-        const totalAvailable = state.coins + totalEarned;
-
         const totalDays = seasons.reduce(function (sum, s) { return sum + s.days; }, 0);
+        const friendCoin = state.friendInclude ? totalDays * FRIEND_SOULS_PER_DAY * FRIEND_COIN_PER_SOUL : 0;
+        const totalAvailable = state.coins + totalEarned + friendCoin;
+
         document.getElementById("resultsArea").innerHTML =
           '<div class="result-box">' +
           '<div class="result-row sub"><span>마감까지 ' + totalDays + "일 · " + seasons.length + "개 시즌</span></div>" +
           '<div class="result-row"><span>현재 보유 코인</span><b>' + state.coins.toLocaleString() + '코인</b></div>' +
           '<div class="result-row"><span>예상 획득 코인</span><b>' + Math.round(totalEarned).toLocaleString() + '코인</b></div>' +
+          (friendCoin > 0 ? '<div class="result-row sub"><span>└ 친구 소울 포함 (하루 4개 × 4코인 × ' + totalDays + '일)</span><b>+' + Math.round(friendCoin).toLocaleString() + '</b></div>' : '') +
           '<div class="result-row result-total"><span>사용 가능 코인</span><b>' + Math.round(totalAvailable).toLocaleString() + '코인</b></div>' +
           breakdown.map(function (b) {
-            return '<div class="result-row sub"><span>' + b.name + " " + b.days + "일 × " + (b.mode === "x2" ? state.coinX2 : state.coinX1) * dailyCap + "</span><b>" + Math.round(b.coin).toLocaleString() + "</b></div>";
+            return '<div class="result-row sub"><span>' + b.name + " " + b.days + "일 × " + COIN_PER_SOUL[b.mode] * dailyCap + "</span><b>" + Math.round(b.coin).toLocaleString() + "</b></div>";
           }).join("") +
           '<div class="result-row sub" style="margin-top:6px;"><span>매일 획득 상한을 다 채웠을 때의 이론 최대치예요. 실제로는 이보다 적을 수 있어요.</span></div>' +
           "</div>";
@@ -945,7 +931,7 @@
         const x1Seasons = breakdown
           .filter(function (b) { return b.mode === "x1"; })
           .map(function (b) {
-            return { name: b.name, gain: b.days * (state.coinX2 - state.coinX1) * dailyCap };
+            return { name: b.name, gain: b.days * (COIN_PER_SOUL.x2 - COIN_PER_SOUL.x1) * dailyCap };
           })
           .sort(function (a, b) { return b.gain - a.gain; });
 
@@ -983,6 +969,27 @@
       }
 
       /* ==========================================================
+         시즌 이름 — register.html에서 등록한 실제 이벤트명 (/seasons)
+         starsoul.html과 같은 백엔드지만 여기선 이름만 뽑아 쓴다.
+         실패해도 계산기는 죽지 않고 전부 "(예정)"으로 표시된다.
+         ========================================================== */
+      const API_URL = "https://cozytools-backend.saeunezip.workers.dev";
+      async function loadSeasonNames() {
+        try {
+          const res = await fetch(API_URL + "/seasons");
+          const data = await res.json();
+          if (!data.ok) throw new Error(data.error || "불러오기 실패");
+          seasonNames = {};
+          (data.seasons || []).forEach(function (s) {
+            if (s.name) seasonNames[s.start] = s.name;
+          });
+        } catch (err) {
+          seasonNames = {};
+        }
+        recalc();
+      }
+
+      /* ==========================================================
          시작
          ========================================================== */
       buildTabs();
@@ -991,6 +998,7 @@
       buildItemList();
       renderDeadlineArea();
       recalc();
+      loadSeasonNames();
       setInterval(tickCountdown, 1000);
     </script>
   </body>

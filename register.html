@@ -420,6 +420,10 @@
             <label>시즌 시작일 (일요일)</label>
             <input type="date" id="ssStart" />
           </div>
+          <div class="field">
+            <label>시즌 이름 (선택)</label>
+            <input type="text" id="ssName" placeholder="예: 천칭자리 — 게임 이벤트명 그대로. 모르면 비워두고 나중에 수정 가능" />
+          </div>
           <div id="ssSoulRows"></div>
           <button class="btn" id="ssSubmitBtn" onclick="submitSeason()">시즌 등록</button>
           <div id="ssMsg"></div>
@@ -707,6 +711,7 @@
           showMsg("ssMsg", "시즌 시작일은 일요일이어야 합니다.", false);
           return;
         }
+        const seasonName = document.getElementById("ssName").value.trim();
 
         const grades = JSON.parse(document.getElementById("ssSoulRows").dataset.grades || "[]");
         const souls = [];
@@ -729,11 +734,12 @@
         try {
           const res = await fetch(SEASONS_API, {
             method: "POST",
-            body: JSON.stringify({ action: "addSeason", pw: pw, start: start, souls: souls }),
+            body: JSON.stringify({ action: "addSeason", pw: pw, start: start, name: seasonName, souls: souls }),
           });
           const data = await res.json();
           if (data.ok) {
             showMsg("ssMsg", "시즌을 등록했습니다.", true);
+            document.getElementById("ssName").value = "";
             loadSeasons();
           } else {
             showMsg("ssMsg", data.error || "등록에 실패했습니다.", false);
@@ -897,13 +903,33 @@
           const bonusCount = s.bonus.filter(function (b) { return b.souls; }).length;
           return (
             '<div class="event-row"><div class="body">' +
-            '<div class="ename">' + s.start + ' 시즌</div>' +
+            '<div class="ename">' + s.start + ' 시즌' + (s.name ? " · " + escapeHtml(s.name) : ' · <span style="color:#b0bec5">이름 없음(예정)</span>') + '</div>' +
             '<div class="emeta">dorazyId ' + dorazyCount + '/12 · 보너스 등록 ' + bonusCount + '/4주 · ' + s.createdAt.slice(0, 16).replace("T", " ") + '</div>' +
             '</div>' +
+            '<button class="btn-ghost" onclick="renameSeason(\'' + s.id + "','" + (s.name || "").replace(/'/g, "\\'") + '\')" style="margin-right:6px">이름</button>' +
             '<button class="btn-ghost" onclick="removeSeason(\'' + s.createdAt + '\')">삭제</button>' +
             '</div>'
           );
         }).join("");
+      }
+
+      async function renameSeason(seasonId, currentName) {
+        const name = prompt("시즌 이름 (게임 이벤트명 그대로, 예: 천칭자리)", currentName || "");
+        if (name === null) return;
+        try {
+          const res = await fetch(SEASONS_API, {
+            method: "POST",
+            body: JSON.stringify({ action: "setSeasonName", pw: pw, seasonId: seasonId, name: name.trim() }),
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            alert(data.error || "이름 수정에 실패했습니다.");
+            return;
+          }
+          loadSeasons();
+        } catch (err) {
+          alert("서버에 연결하지 못했습니다: " + err.message);
+        }
       }
 
       async function removeSeason(createdAt) {
