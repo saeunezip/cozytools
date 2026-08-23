@@ -898,12 +898,27 @@
         // 비어있는 슬롯 여러 개에 재고를 몰아넣지 않고 최대한 균등하게 나눠서 완료 시각을
         // 앞당긴다 (배치가 클수록 그 배치의 모든 마리가 다 같이 오래 기다려야 하므로,
         // 슬롯 하나에 몰아주는 것보다 여러 슬롯에 고르게 나누는 쪽이 항상 더 빨리 끝난다).
+        //
+        // 지금이 보너스 주간이면 배치 크기를 무조건 12로 채우지 않는다 — 12마리 꽉 채우면
+        // 완료가 경계를 살짝 넘길 수 있고, 이 등급은 이 시즌에 다시 보너스가 안 되므로
+        // 그건 확정 손해다. 반면 안 보내고 재고로 남겨도(이월 재고) 나중에 보내나 지금
+        // 넘겨서 보내나 어차피 미적용 1배로 똑같으므로, 손해 볼 바엔 아예 안 보내는 게 낫다.
+        // → 경계 전에 확실히 끝나는 한도 내에서만 채우고, 그 한도가 0이면 이번 라운드는
+        // 건너뛴다(그 몫은 이월 재고로 남는다).
         function tryFillAt(t) {
           const freeIdxs = [];
           for (let i = 0; i < s; i++) if (slotFreeAt[i] <= t) freeIdxs.push(i);
           if (!freeIdxs.length || stockQueue <= 0) return;
 
-          const totalToPlace = Math.min(stockQueue, freeIdxs.length * BATCH_MAX);
+          let perSlotCap = BATCH_MAX;
+          if (bonusNow) {
+            const hoursToBoundary = (boundaryMs - t) / 3600000;
+            const safeSize = Math.floor(hoursToBoundary / info.hours - 1e-9);
+            perSlotCap = Math.max(0, Math.min(BATCH_MAX, safeSize));
+          }
+          if (perSlotCap <= 0) return;
+
+          const totalToPlace = Math.min(stockQueue, freeIdxs.length * perSlotCap);
           const base = Math.floor(totalToPlace / freeIdxs.length);
           let extra = totalToPlace % freeIdxs.length;
 
