@@ -83,6 +83,16 @@
         line-height: 1.6;
         margin-bottom: 14px;
       }
+      .info-box a {
+        color: #6d5a1f;
+        font-weight: bold;
+      }
+      .empty-msg {
+        text-align: center;
+        color: #90a4ae;
+        font-size: 13px;
+        padding: 14px 0;
+      }
 
       .toggle-row {
         display: flex;
@@ -127,6 +137,13 @@
       .field input:focus {
         border-color: #1f3b73;
       }
+      .field-row {
+        display: flex;
+        gap: 10px;
+      }
+      .field-row .field {
+        flex: 1;
+      }
       .field-note {
         font-size: 11.5px;
         color: #90a4ae;
@@ -149,6 +166,181 @@
         accent-color: #1f3b73;
       }
 
+      .btn {
+        background: #1f3b73;
+        color: #fff;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 9px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+      .btn:hover {
+        filter: brightness(0.94);
+      }
+      .btn-ghost {
+        background: none;
+        border: 1px solid #dfe3e6;
+        color: #78909c;
+        font-weight: bold;
+        font-size: 12.5px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      /* 마감 카드 */
+      .deadline-derive {
+        background: #f3f6fc;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin: 10px 0 14px;
+        font-size: 13px;
+      }
+      .deadline-derive .drow {
+        display: flex;
+        justify-content: space-between;
+        padding: 3px 0;
+        color: #546e7a;
+      }
+      .deadline-derive .drow.total {
+        border-top: 1px solid #dce3f0;
+        margin-top: 5px;
+        padding-top: 8px;
+        font-weight: bold;
+        color: #152c57;
+      }
+      .deadline-derive .drow.total b {
+        font-variant-numeric: tabular-nums;
+      }
+      .deadline-expired {
+        background: #ffebee;
+        color: #b71c1c;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 14px;
+      }
+
+      /* 시즌 목록 */
+      .season-row {
+        border: 2px solid #eceff1;
+        border-radius: 10px;
+        padding: 11px 12px;
+        margin-bottom: 8px;
+      }
+      .season-row .stop {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 3px;
+      }
+      .season-row .sname {
+        font-weight: bold;
+        font-size: 14.5px;
+        color: #152c57;
+      }
+      .season-row .speriod {
+        font-size: 11.5px;
+        color: #90a4ae;
+      }
+      .season-row .snote {
+        font-size: 11.5px;
+        color: #90a4ae;
+        margin-bottom: 8px;
+      }
+      .season-row .sbottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .season-row .scoin {
+        font-size: 12.5px;
+        color: #546e7a;
+      }
+      .season-row .scoin b {
+        color: #1f3b73;
+      }
+      .mode-toggle {
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+      .mode-toggle button {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 2px solid #eceff1;
+        background: #fbfbfc;
+        color: #90a4ae;
+        font-weight: bold;
+        font-size: 12.5px;
+        cursor: pointer;
+      }
+      .mode-toggle button.on-x2 {
+        border-color: #e3a23c;
+        background: #fff6e8;
+        color: #a06a1a;
+      }
+      .mode-toggle button.on-x1 {
+        border-color: #90a4ae;
+        background: #f3f4f6;
+        color: #546e7a;
+      }
+      .bulk-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .bulk-row button {
+        flex: 1;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #dfe3e6;
+        background: #fbfbfc;
+        color: #546e7a;
+        font-weight: bold;
+        font-size: 12.5px;
+        cursor: pointer;
+      }
+
+      /* 아코디언 */
+      .accordion-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+      }
+      .accordion-head h3 {
+        flex: 1;
+      }
+      .accordion-arrow {
+        color: #90a4ae;
+        font-size: 13px;
+        transition: transform 0.15s;
+        flex: none;
+        margin-left: 8px;
+      }
+      .accordion-arrow.open {
+        transform: rotate(180deg);
+      }
+      .accordion-body {
+        display: none;
+        margin-top: 12px;
+      }
+      .accordion-body.open {
+        display: block;
+      }
+
+      /* 결과 */
       .result-box {
         background: #f3f6fc;
         border-radius: 12px;
@@ -168,12 +360,6 @@
       }
       .result-row b {
         color: #152c57;
-      }
-      .result-title {
-        font-size: 13.5px;
-        font-weight: bold;
-        color: #152c57;
-        margin-bottom: 6px;
       }
       .result-total {
         border-top: 1px solid #dce3f0;
@@ -220,6 +406,21 @@
         font-weight: bold;
         color: #546e7a;
       }
+      .item-row .ibadge {
+        flex: none;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 2px 7px;
+        border-radius: 8px;
+      }
+      .item-row .ibadge.ok {
+        background: #e6f4ea;
+        color: #1e7d34;
+      }
+      .item-row .ibadge.no {
+        background: #ffebee;
+        color: #b71c1c;
+      }
 
       .verdict-box {
         border-radius: 12px;
@@ -232,16 +433,16 @@
         background: #e6f4ea;
         color: #1e7d34;
       }
-      .verdict-box.partial {
-        background: #fff3e0;
-        color: #7a4a10;
-      }
       .verdict-box.no {
         background: #ffebee;
         color: #b71c1c;
       }
       .verdict-box b {
         font-variant-numeric: tabular-nums;
+      }
+      .verdict-box .suggest {
+        margin-top: 6px;
+        font-size: 12.5px;
       }
 
       .footer-note {
@@ -264,48 +465,84 @@
       </div>
 
       <div class="info-box">
-        정밀 계산이 아니라 "남은 일수 × 평균 하루 획득량"으로 대략 얼마나 코인이 모일지 어림잡는 계산기예요.
-        실제로는 접속 빈도·보너스 적중 여부에 따라 이보다 적을 수 있어요.
+        이 계산기는 "하루 평균 몇 코인"이라는 어림 요율로 계산해요. 슬롯·배치 단위 정밀 계산은
+        <a href="starsoul.html">스타소울 파견 계산기</a>가 따로 해요.
       </div>
 
       <div class="panel">
-        <h3>남은 기간 · 획득 가정</h3>
-        <p class="desc">스타소울 소환 시즌은 28일 주기예요. 남은 기간 동안 몇 번의 시즌을 겪는지 계산에 자동으로 반영돼요.</p>
+        <h3>상점 마감</h3>
+        <p class="desc">게임 상점 화면 상단 카운트다운 숫자를 그대로 입력하세요. 카운트다운이 끝나도 15일 동안은 이 상점에서 계속 살 수 있어서(다음 상점과 동시 운영), 그 유예까지 더해서 계산해요.</p>
 
-        <div class="field">
-          <label>상점 종료까지 남은 일수</label>
-          <input type="number" id="inDays" inputmode="numeric" min="0" placeholder="예: 75" />
-          <div class="field-note">상점 화면 상단 카운트다운의 일수를 그대로 입력하면 돼요</div>
-        </div>
-
-        <div class="field">
-          <label>계산 대상 등급</label>
-          <div class="toggle-row" id="gradeTabs"></div>
-        </div>
-
-        <div class="field">
-          <label>획득 경로</label>
-          <div class="toggle-row" id="pathTabs"></div>
-        </div>
-
-        <div class="field">
-          <label class="checkbox-field">
-            <input type="checkbox" id="inFriendInclude" />
-            <span>친구 소울 포함 (같은 소울 4개를 매일 추가 획득하는 가정)</span>
-          </label>
-        </div>
+        <div id="deadlineInputArea"></div>
+        <div id="deadlineDeriveArea"></div>
       </div>
 
-      <div class="panel">
-        <h3>예상 코인</h3>
-        <div id="resultsArea"></div>
-      </div>
+      <div id="mainArea" style="display: none">
+        <div class="panel">
+          <h3>획득 조건</h3>
 
-      <div class="panel">
-        <h3>상품 선택</h3>
-        <p class="desc">사고 싶은 상품을 체크하면 합계가 예상 코인 범위 안에 들어오는지 알려줘요.</p>
-        <div class="item-list" id="itemList"></div>
-        <div id="verdictArea"></div>
+          <div class="field">
+            <label>획득 경로</label>
+            <div class="toggle-row" id="pathTabs"></div>
+          </div>
+
+          <div class="field">
+            <label>현재 보유 코인</label>
+            <input type="number" id="inCoins" inputmode="numeric" min="0" value="0" />
+          </div>
+
+          <div class="field">
+            <label class="checkbox-field">
+              <input type="checkbox" id="inIncludeToday" />
+              <span>오늘 하루치 아직 남았어요 (오늘 획득 상한을 아직 안 채웠으면 켜세요)</span>
+            </label>
+          </div>
+
+          <button class="accordion-head" onclick="toggleAdvanced()">
+            <h3 style="font-size: 13.5px">고급 설정</h3>
+            <span class="accordion-arrow" id="advArrow">▾</span>
+          </button>
+          <div id="advancedBody" class="accordion-body">
+            <div class="field-row" style="margin-top: 10px">
+              <div class="field">
+                <label>2x 소울당 코인</label>
+                <input type="number" id="inCoinX2" inputmode="numeric" min="1" value="7" />
+              </div>
+              <div class="field">
+                <label>1x 소울당 코인</label>
+                <input type="number" id="inCoinX1" inputmode="numeric" min="1" value="4" />
+              </div>
+            </div>
+            <div class="field-note">기본값은 "SSR 보너스 2주 + SR 보너스 2주" 관측치(2x=7) / SSR만 재배(1x=4) 기준이에요.</div>
+          </div>
+
+          <div class="info-box" style="margin-top: 14px; margin-bottom: 0">
+            소울이 생기는 대로 바로 파견하는 기준이에요(쟁여두기 최적화 미반영). 친구 소울은 포함하지 않았고,
+            매일 획득 상한을 다 채운다고 가정한 <b>이론 최대치</b>예요. 슬롯이 2개뿐이면 이보다 적게 나올 수 있어요.
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>시즌별로 어떻게 굴릴 건가요?</h3>
+          <p class="desc">보너스 주에 맞춰 등급을 갈아타면 2x, 신경 안 쓰고 SSR만 파면 1x예요.</p>
+          <div class="bulk-row">
+            <button onclick="setAllSeasons('x2')">전체 2x</button>
+            <button onclick="setAllSeasons('x1')">전체 1x</button>
+          </div>
+          <div id="seasonListArea"></div>
+        </div>
+
+        <div class="panel">
+          <h3>예상 코인</h3>
+          <div id="resultsArea"></div>
+        </div>
+
+        <div class="panel">
+          <h3>상품 선택</h3>
+          <p class="desc">사고 싶은 상품을 체크하면 합계가 예상 코인 안에 들어오는지 알려줘요.</p>
+          <div class="item-list" id="itemList"></div>
+          <div id="verdictArea"></div>
+        </div>
       </div>
 
       <p class="footer-note">
@@ -316,14 +553,70 @@
 
     <script>
       /* ==========================================================
+         KST 헬퍼 — starsoul.html이 정본. 여기는 복사본이니 두 파일이
+         어긋나면 starsoul.html 쪽을 기준으로 맞출 것.
+         ========================================================== */
+      const KST_OFFSET_MS = 9 * 3600 * 1000;
+      function toKST(date) {
+        return new Date(date.getTime() + KST_OFFSET_MS);
+      }
+      function fromKSTFields(y, m1, d, h, min, sec) {
+        return new Date(Date.UTC(y, m1 - 1, d, h || 0, min || 0, sec || 0) - KST_OFFSET_MS);
+      }
+      function pad2(n) {
+        return String(n).padStart(2, "0");
+      }
+      function kstDateString(date) {
+        const k = toKST(date);
+        return k.getUTCFullYear() + "-" + pad2(k.getUTCMonth() + 1) + "-" + pad2(k.getUTCDate());
+      }
+      function parseYMD(s) {
+        const [y, m, d] = s.split("-").map(Number);
+        return { y, m, d };
+      }
+      function ymdToKSTInstant(ymd, h, min) {
+        const { y, m, d } = parseYMD(ymd);
+        return fromKSTFields(y, m, d, h || 0, min || 0, 0);
+      }
+      function fmtDuration(ms) {
+        if (ms < 0) ms = 0;
+        const totalSec = Math.floor(ms / 1000);
+        const days = Math.floor(totalSec / 86400);
+        const h = Math.floor((totalSec % 86400) / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        if (days > 0) return days + "일 " + pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+        return pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+      }
+      function fmtKSTClock(date) {
+        const k = toKST(date);
+        const WD = ["일", "월", "화", "수", "목", "금", "토"];
+        return k.getUTCMonth() + 1 + "/" + k.getUTCDate() + "(" + WD[k.getUTCDay()] + ") " + pad2(k.getUTCHours()) + ":" + pad2(k.getUTCMinutes());
+      }
+      function fmtYMDShort(ymd) {
+        const { m, d } = parseYMD(ymd);
+        return m + "/" + d;
+      }
+
+      /* ==========================================================
          상수
          ========================================================== */
-      const GRADE_COIN = { SSR: 4, SR: 3, R: 2 };
-      const GRADES = ["SSR", "SR", "R"];
-      const BONUS_MULT = 2;
-      const DAILY_CAP = { free: 12, pass: 30 };
-      const FRIEND_MAX = 4;
+      const ANCHOR_START = "2026-08-23"; // 처녀자리 시작 (일요일, /seasons id와 동일)
+      const ANCHOR_INDEX = 5; // ZODIAC 배열에서 처녀자리의 인덱스
+      const ZODIAC = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
       const SEASON_DAYS = 28;
+      const GRACE_DAYS = 15; // 카운트다운 종료 후 유예 (⚠️ 관측치)
+      const DAILY_CAP = { free: 12, pass: 30 };
+      const ANCHOR_MS = ymdToKSTInstant(ANCHOR_START, 0, 0).getTime();
+
+      // dayNum: ANCHOR_START 당일이 0. KST 자정으로 정규화한 뒤 계산해야 하루 중
+      // 어느 시각이냐에 따라 시즌 경계가 흔들리는 걸 막을 수 있다.
+      function dayNum(t) {
+        return Math.floor((ymdToKSTInstant(kstDateString(t), 0, 0).getTime() - ANCHOR_MS) / 86400000);
+      }
+      function dayNumToYMD(n) {
+        return kstDateString(new Date(ANCHOR_MS + n * 86400000));
+      }
 
       // 상점 아이템 — 전부 코인 가격 (2026-08 시점 화면 그대로 박아둠, 상점이 바뀌면 여기만 고치면 됨)
       const SHOP_ITEMS = [
@@ -332,63 +625,220 @@
         { name: "행운의 올리브", price: 3999 },
         { name: "크리스마스의 밤", price: 3999 },
         { name: "가을빛 단풍", price: 3999 },
-        { name: "수정빛 얼음 꿈결", price: 999 },
         { name: "푸른 서리 그림자", price: 1666 },
         { name: "동화 왕국", price: 1666 },
+        { name: "수정빛 얼음 꿈결", price: 999 },
       ];
 
       /* ==========================================================
          상태
          ========================================================== */
+      let deadlineMs = Number(localStorage.getItem("shop_deadlineMs")) || null;
+      if (deadlineMs && deadlineMs <= Date.now()) deadlineMs = null;
+
       let state = {
-        days: Number(localStorage.getItem("shop_days")) || 0,
-        grade: localStorage.getItem("shop_grade") || "SSR",
-        path: localStorage.getItem("shop_path") || "free",
-        friendInclude: localStorage.getItem("shop_friendInclude") === "1",
+        path: localStorage.getItem("shop_path") || "pass",
+        coins: Number(localStorage.getItem("shop_coins")) || 0,
+        includeToday: localStorage.getItem("shop_includeToday") === "1",
+        coinX2: Number(localStorage.getItem("shop_coinX2")) || 7,
+        coinX1: Number(localStorage.getItem("shop_coinX1")) || 4,
       };
+      let seasonModes = JSON.parse(localStorage.getItem("shop_seasonModes") || "{}");
       let selected = JSON.parse(localStorage.getItem("shop_selected") || "[]");
 
       /* ==========================================================
-         입력부 렌더
+         ② 마감 입력
+         ========================================================== */
+      function renderDeadlineInput() {
+        const box = document.getElementById("deadlineInputArea");
+        box.innerHTML =
+          '<div class="field-row">' +
+          '<div class="field"><label>남은 일수</label><input type="number" id="inDeadlineDays" inputmode="numeric" min="0" placeholder="예: 75" /></div>' +
+          '<div class="field"><label>남은 시간</label><input type="number" id="inDeadlineHours" inputmode="numeric" min="0" max="23" placeholder="예: 22" /></div>' +
+          "</div>" +
+          '<button class="btn" onclick="submitDeadline()">마감 계산하기</button>';
+      }
+
+      function submitDeadline() {
+        const days = Math.max(0, parseInt(document.getElementById("inDeadlineDays").value, 10) || 0);
+        const hours = Math.max(0, Math.min(23, parseInt(document.getElementById("inDeadlineHours").value, 10) || 0));
+        const now = Date.now();
+        const countdownEnd = now + days * 86400000 + hours * 3600000;
+        deadlineMs = countdownEnd + GRACE_DAYS * 86400000;
+        localStorage.setItem("shop_deadlineMs", deadlineMs);
+        renderDeadlineArea();
+        recalc();
+      }
+
+      function resetDeadline() {
+        deadlineMs = null;
+        localStorage.removeItem("shop_deadlineMs");
+        renderDeadlineArea();
+        recalc();
+      }
+
+      function renderDeadlineArea() {
+        const inputArea = document.getElementById("deadlineInputArea");
+        const deriveArea = document.getElementById("deadlineDeriveArea");
+        const mainArea = document.getElementById("mainArea");
+
+        if (!deadlineMs) {
+          inputArea.style.display = "";
+          renderDeadlineInput();
+          deriveArea.innerHTML = "";
+          mainArea.style.display = "none";
+          return;
+        }
+
+        inputArea.style.display = "none";
+        mainArea.style.display = "";
+
+        const now = new Date();
+        const deadline = new Date(deadlineMs);
+        const countdownEnd = new Date(deadlineMs - GRACE_DAYS * 86400000);
+
+        if (deadline.getTime() <= now.getTime()) {
+          deriveArea.innerHTML =
+            '<div class="deadline-expired">이 상점은 마감됐어요. 새 카운트다운을 입력해 주세요.</div>' +
+            '<button class="btn-ghost" onclick="resetDeadline()">카운트다운 다시 입력</button>';
+          return;
+        }
+
+        deriveArea.innerHTML =
+          '<div class="deadline-derive">' +
+          '<div class="drow"><span>게임 카운트다운 종료</span><span>' + fmtKSTClock(countdownEnd) + "</span></div>" +
+          '<div class="drow"><span>유예 기간</span><span>+ ' + GRACE_DAYS + "일</span></div>" +
+          '<div class="drow total"><span>진짜 마감</span><span>' + fmtKSTClock(deadline) + " KST</span></div>" +
+          '<div class="drow total"><span></span><b id="cdDeadline"></b></div>' +
+          "</div>" +
+          '<button class="btn-ghost" onclick="resetDeadline()">카운트다운 다시 입력</button>';
+      }
+
+      /* ==========================================================
+         ③ 입력부 렌더
          ========================================================== */
       function buildTabs() {
-        document.getElementById("gradeTabs").innerHTML = GRADES.map(function (g) {
-          return '<button data-g="' + g + '" onclick="setState(\'grade\',\'' + g + '\')">' + g + "</button>";
-        }).join("");
         document.getElementById("pathTabs").innerHTML =
           '<button data-p="free" onclick="setState(\'path\',\'free\')">무료 상한 12/일</button>' +
           '<button data-p="pass" onclick="setState(\'path\',\'pass\')">패스권 상한 30/일</button>';
       }
 
-      function syncTabs() {
-        document.querySelectorAll("#gradeTabs button").forEach(function (b) {
-          b.classList.toggle("on", b.dataset.g === state.grade);
-        });
+      function syncInputs() {
         document.querySelectorAll("#pathTabs button").forEach(function (b) {
           b.classList.toggle("on", b.dataset.p === state.path);
         });
-        document.getElementById("inDays").value = state.days || "";
-        document.getElementById("inFriendInclude").checked = state.friendInclude;
+        document.getElementById("inCoins").value = state.coins;
+        document.getElementById("inIncludeToday").checked = state.includeToday;
+        document.getElementById("inCoinX2").value = state.coinX2;
+        document.getElementById("inCoinX1").value = state.coinX1;
       }
 
       function setState(key, val) {
         state[key] = val;
         localStorage.setItem("shop_" + key, val);
-        syncTabs();
+        syncInputs();
         recalc();
       }
 
       function wireInputs() {
-        document.getElementById("inDays").addEventListener("input", function (e) {
-          state.days = Math.max(0, parseInt(e.target.value, 10) || 0);
-          localStorage.setItem("shop_days", state.days);
+        document.getElementById("inCoins").addEventListener("input", function (e) {
+          state.coins = Math.max(0, parseInt(e.target.value, 10) || 0);
+          localStorage.setItem("shop_coins", state.coins);
           recalc();
         });
-        document.getElementById("inFriendInclude").addEventListener("change", function (e) {
-          state.friendInclude = e.target.checked;
-          localStorage.setItem("shop_friendInclude", state.friendInclude ? "1" : "0");
+        document.getElementById("inIncludeToday").addEventListener("change", function (e) {
+          state.includeToday = e.target.checked;
+          localStorage.setItem("shop_includeToday", state.includeToday ? "1" : "0");
           recalc();
         });
+        document.getElementById("inCoinX2").addEventListener("input", function (e) {
+          state.coinX2 = Math.max(1, parseInt(e.target.value, 10) || 1);
+          localStorage.setItem("shop_coinX2", state.coinX2);
+          recalc();
+        });
+        document.getElementById("inCoinX1").addEventListener("input", function (e) {
+          state.coinX1 = Math.max(1, parseInt(e.target.value, 10) || 1);
+          localStorage.setItem("shop_coinX1", state.coinX1);
+          recalc();
+        });
+      }
+
+      function toggleAdvanced() {
+        const body = document.getElementById("advancedBody");
+        const open = body.classList.toggle("open");
+        document.getElementById("advArrow").classList.toggle("open", open);
+      }
+
+      /* ==========================================================
+         ④ 시즌 목록
+         ========================================================== */
+      // 시즌 k는 half-open 구간 [28k, 28k+28)을 차지한다.
+      function buildSeasonList(now, deadline) {
+        const firstDay = dayNum(now) + (state.includeToday ? 0 : 1);
+        const lastDay = dayNum(deadline) - 1; // 마감 당일은 무조건 제외
+        if (lastDay < firstDay) return [];
+
+        const kFirst = Math.floor(firstDay / SEASON_DAYS);
+        const kLast = Math.floor(lastDay / SEASON_DAYS);
+        const seasons = [];
+        for (let k = kFirst; k <= kLast; k++) {
+          const seasonStartDay = SEASON_DAYS * k;
+          const startYMD = dayNumToYMD(seasonStartDay);
+          const endYMD = dayNumToYMD(seasonStartDay + SEASON_DAYS - 1);
+          const idx = (((ANCHOR_INDEX + k) % 12) + 12) % 12;
+          const days = Math.max(0, Math.min(lastDay, seasonStartDay + SEASON_DAYS - 1) - Math.max(firstDay, seasonStartDay) + 1);
+          const partial = days < SEASON_DAYS;
+          const note = k === kFirst && days < SEASON_DAYS - 0 && seasonStartDay < firstDay
+            ? "이미 " + (firstDay - seasonStartDay) + "일 지남"
+            : k === kLast && partial
+              ? "마감이 시즌 중간"
+              : "";
+          seasons.push({ k, startYMD, endYMD, name: ZODIAC[idx], days, note });
+        }
+        return seasons;
+      }
+
+      function setAllSeasons(mode) {
+        const seasons = window.__lastSeasons || [];
+        seasons.forEach(function (s) {
+          seasonModes[s.startYMD] = mode;
+        });
+        localStorage.setItem("shop_seasonModes", JSON.stringify(seasonModes));
+        recalc();
+      }
+
+      function setSeasonMode(startYMD, mode) {
+        seasonModes[startYMD] = mode;
+        localStorage.setItem("shop_seasonModes", JSON.stringify(seasonModes));
+        recalc();
+      }
+
+      function renderSeasonList(seasons, dailyCap) {
+        const box = document.getElementById("seasonListArea");
+        if (!seasons.length) {
+          box.innerHTML = '<div class="empty-msg">마감까지 남은 기간이 없어요.</div>';
+          return;
+        }
+        box.innerHTML = seasons
+          .map(function (s) {
+            const mode = seasonModes[s.startYMD] || "x1";
+            const perSoul = mode === "x2" ? state.coinX2 : state.coinX1;
+            const coin = perSoul * dailyCap * s.days;
+            return (
+              '<div class="season-row">' +
+              '<div class="stop"><span class="sname">' + s.name + '</span><span class="speriod">' + fmtYMDShort(s.startYMD) + "~" + fmtYMDShort(s.endYMD) + "</span></div>" +
+              (s.note ? '<div class="snote">' + s.days + "일 반영 (" + s.note + ")</div>" : '<div class="snote">' + s.days + "일 반영</div>") +
+              '<div class="sbottom">' +
+              '<span class="scoin">' + s.days + "일 × " + (perSoul * dailyCap) + " = <b>" + coin.toLocaleString() + "코인</b></span>" +
+              '<div class="mode-toggle">' +
+              '<button class="' + (mode === "x2" ? "on-x2" : "") + '" onclick="setSeasonMode(\'' + s.startYMD + "','x2')\">2x</button>" +
+              '<button class="' + (mode === "x1" ? "on-x1" : "") + '" onclick="setSeasonMode(\'' + s.startYMD + "','x1')\">1x</button>" +
+              "</div>" +
+              "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
       }
 
       /* ==========================================================
@@ -399,10 +849,11 @@
         box.innerHTML = SHOP_ITEMS.map(function (item, i) {
           const on = selected.indexOf(i) !== -1;
           return (
-            '<label class="item-row' + (on ? " on" : "") + '">' +
-            '<input type="checkbox" onchange="toggleItem(' + i + ', this.checked)"' + (on ? " checked" : "") + " />" +
+            '<label class="item-row' + (on ? " on" : "") + '" data-i="' + i + '">' +
+            '<input type="checkbox" onchange="toggleItem(' + i + ", this.checked)\"" + (on ? " checked" : "") + " />" +
             '<span class="iname">' + item.name + "</span>" +
             '<span class="iprice">' + item.price.toLocaleString() + "코인</span>" +
+            '<span class="ibadge" data-badge="' + i + '"></span>' +
             "</label>"
           );
         }).join("");
@@ -413,8 +864,8 @@
         if (on && idx === -1) selected.push(i);
         if (!on && idx !== -1) selected.splice(idx, 1);
         localStorage.setItem("shop_selected", JSON.stringify(selected));
-        document.querySelectorAll("#itemList .item-row").forEach(function (row, j) {
-          row.classList.toggle("on", selected.indexOf(j) !== -1);
+        document.querySelectorAll("#itemList .item-row").forEach(function (row) {
+          row.classList.toggle("on", selected.indexOf(Number(row.dataset.i)) !== -1);
         });
         recalc();
       }
@@ -423,27 +874,57 @@
          계산 + 렌더
          ========================================================== */
       function recalc() {
-        const dailyCap = DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0);
-        const totalSouls = dailyCap * state.days;
-        const coinPerSoul = GRADE_COIN[state.grade];
-        const coinMin = totalSouls * coinPerSoul;
-        const coinMax = totalSouls * coinPerSoul * BONUS_MULT;
-        const seasons = state.days / SEASON_DAYS;
+        renderDeadlineArea();
+        if (!deadlineMs) return;
 
+        const now = new Date();
+        const deadline = new Date(deadlineMs);
+        if (deadline.getTime() <= now.getTime()) return;
+
+        const dailyCap = DAILY_CAP[state.path];
+        const seasons = buildSeasonList(now, deadline);
+        window.__lastSeasons = seasons;
+        renderSeasonList(seasons, dailyCap);
+
+        let totalEarned = 0;
+        const breakdown = seasons.map(function (s) {
+          const mode = seasonModes[s.startYMD] || "x1";
+          const perSoul = mode === "x2" ? state.coinX2 : state.coinX1;
+          const coin = perSoul * dailyCap * s.days;
+          totalEarned += coin;
+          return { name: s.name, days: s.days, mode: mode, coin: coin, startYMD: s.startYMD };
+        });
+
+        const totalAvailable = state.coins + totalEarned;
+
+        const totalDays = seasons.reduce(function (sum, s) { return sum + s.days; }, 0);
         document.getElementById("resultsArea").innerHTML =
           '<div class="result-box">' +
-          '<div class="result-row"><span>남은 시즌 수</span><b>' + seasons.toFixed(1) + '시즌 (28일 기준)</b></div>' +
-          '<div class="result-row"><span>하루 평균 획득</span><b>' + dailyCap.toLocaleString() + '마리</b></div>' +
-          '<div class="result-row"><span>예상 획득 소울</span><b>' + totalSouls.toLocaleString() + '마리</b></div>' +
-          '<div class="result-row result-total"><span>예상 코인</span><b>' + coinMin.toLocaleString() + ' ~ ' + coinMax.toLocaleString() + '코인</b></div>' +
-          '<div class="result-row sub"><span>최소 — 시즌 내내 전부 미적용(1배)로 보낸다고 가정</span></div>' +
-          '<div class="result-row sub"><span>최대 — 시즌 내내 전부 보너스(2배)로 보낸다고 가정</span></div>' +
+          '<div class="result-row sub"><span>마감까지 ' + totalDays + "일 · " + seasons.length + "개 시즌</span></div>" +
+          '<div class="result-row"><span>현재 보유 코인</span><b>' + state.coins.toLocaleString() + '코인</b></div>' +
+          '<div class="result-row"><span>예상 획득 코인</span><b>' + Math.round(totalEarned).toLocaleString() + '코인</b></div>' +
+          '<div class="result-row result-total"><span>사용 가능 코인</span><b>' + Math.round(totalAvailable).toLocaleString() + '코인</b></div>' +
+          breakdown.map(function (b) {
+            return '<div class="result-row sub"><span>' + b.name + " " + b.days + "일 × " + (b.mode === "x2" ? state.coinX2 : state.coinX1) * dailyCap + "</span><b>" + Math.round(b.coin).toLocaleString() + "</b></div>";
+          }).join("") +
+          '<div class="result-row sub" style="margin-top:6px;"><span>매일 획득 상한을 다 채웠을 때의 이론 최대치예요. 실제로는 이보다 적을 수 있어요.</span></div>' +
           "</div>";
 
-        renderVerdict(coinMin, coinMax);
+        renderItemBadges(totalAvailable);
+        renderVerdict(totalAvailable, breakdown, dailyCap);
       }
 
-      function renderVerdict(coinMin, coinMax) {
+      function renderItemBadges(totalAvailable) {
+        SHOP_ITEMS.forEach(function (item, i) {
+          const el = document.querySelector('[data-badge="' + i + '"]');
+          if (!el) return;
+          const ok = totalAvailable >= item.price;
+          el.className = "ibadge " + (ok ? "ok" : "no");
+          el.textContent = ok ? "살 수 있어요" : (item.price - totalAvailable).toLocaleString() + "코인 모자람";
+        });
+      }
+
+      function renderVerdict(totalAvailable, breakdown, dailyCap) {
         const area = document.getElementById("verdictArea");
         if (!selected.length) {
           area.innerHTML = "";
@@ -453,28 +934,64 @@
           return sum + SHOP_ITEMS[i].price;
         }, 0);
 
-        let cls, msg;
-        if (total <= coinMin) {
-          cls = "ok";
-          msg = "선택한 상품 합계 <b>" + total.toLocaleString() + "코인</b> — 최소 예상치로도 살 수 있어요 (여유 " + (coinMin - total).toLocaleString() + "코인).";
-        } else if (total <= coinMax) {
-          cls = "partial";
-          msg = "선택한 상품 합계 <b>" + total.toLocaleString() + "코인</b> — 최소 예상치로는 부족하고(" + (total - coinMin).toLocaleString() + "코인 모자람), 보너스를 잘 맞추면(최대 기준) 살 수 있어요.";
-        } else {
-          cls = "no";
-          msg = "선택한 상품 합계 <b>" + total.toLocaleString() + "코인</b> — 최대 예상치로도 " + (total - coinMax).toLocaleString() + "코인 모자라요.";
+        if (total <= totalAvailable) {
+          area.innerHTML =
+            '<div class="verdict-box ok">선택한 상품 합계 <b>' + total.toLocaleString() + "코인</b> — 전부 살 수 있어요 (남는 코인 " + Math.round(totalAvailable - total).toLocaleString() + "코인).</div>";
+          return;
         }
-        area.innerHTML = '<div class="verdict-box ' + cls + '">' + msg + "</div>";
+
+        const shortfall = total - totalAvailable;
+        // 1x로 잡힌 시즌 중 2x로 바꿨을 때 이득이 큰 순서로, 부족분을 메울 수 있는 최소 개수를 제안
+        const x1Seasons = breakdown
+          .filter(function (b) { return b.mode === "x1"; })
+          .map(function (b) {
+            return { name: b.name, gain: b.days * (state.coinX2 - state.coinX1) * dailyCap };
+          })
+          .sort(function (a, b) { return b.gain - a.gain; });
+
+        let acc = 0, picked = [];
+        for (let i = 0; i < x1Seasons.length && acc < shortfall; i++) {
+          acc += x1Seasons[i].gain;
+          picked.push(x1Seasons[i].name);
+        }
+
+        let html = '<div class="verdict-box no">선택한 상품 합계 <b>' + total.toLocaleString() + "코인</b> — " + Math.round(shortfall).toLocaleString() + "코인 모자라요.";
+        if (picked.length && acc >= shortfall) {
+          html += '<div class="suggest">→ ' + picked.join(", ") + "을(를) 2x로 바꾸면 +" + Math.round(acc).toLocaleString() + "코인이라 충분해요.</div>";
+        } else if (picked.length) {
+          html += '<div class="suggest">→ 남은 시즌을 전부 2x로 돌려도(+' + Math.round(acc).toLocaleString() + "코인) 부족해요.</div>";
+        }
+        html += "</div>";
+        area.innerHTML = html;
+      }
+
+      /* ==========================================================
+         1초 카운트다운
+         ========================================================== */
+      function tickCountdown() {
+        if (!deadlineMs) return;
+        const now = new Date();
+        const deadline = new Date(deadlineMs);
+        const el = document.getElementById("cdDeadline");
+        if (el) {
+          if (deadline.getTime() <= now.getTime()) {
+            recalc();
+          } else {
+            el.textContent = fmtDuration(deadline.getTime() - now.getTime()) + " 남음";
+          }
+        }
       }
 
       /* ==========================================================
          시작
          ========================================================== */
       buildTabs();
-      syncTabs();
+      syncInputs();
       wireInputs();
       buildItemList();
+      renderDeadlineArea();
       recalc();
+      setInterval(tickCountdown, 1000);
     </script>
   </body>
 </html>
