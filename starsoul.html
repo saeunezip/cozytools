@@ -198,28 +198,6 @@
         padding: 0;
       }
 
-      /* ② 마감 카운트다운 */
-      .deadline-card {
-        border-radius: 12px;
-        padding: 13px 15px;
-        margin-bottom: 14px;
-        font-size: 13px;
-        line-height: 1.7;
-      }
-      .deadline-card.hot {
-        background: #fff3e0;
-        border: 1px solid #ffcc80;
-        color: #7a4a10;
-      }
-      .deadline-card.cool {
-        background: #eef2fb;
-        border: 1px solid #c9d4ec;
-        color: #354a73;
-      }
-      .deadline-card b {
-        font-variant-numeric: tabular-nums;
-      }
-
       /* 탭 / 토글 공통 */
       .toggle-row {
         display: flex;
@@ -432,9 +410,6 @@
         <div class="empty-msg" style="color: #d7ddec">불러오는 중...</div>
       </div>
 
-      <!-- ② 마감 카운트다운 -->
-      <div id="deadlineArea"></div>
-
       <!-- ③ 입력부 -->
       <div class="panel">
         <h3>내 보유량 입력</h3>
@@ -563,11 +538,6 @@
         let boundary = fromKSTFields(k.getUTCFullYear(), k.getUTCMonth() + 1, k.getUTCDate() + daysToAdd, 0, 0, 0);
         if (boundary.getTime() <= now.getTime()) boundary = new Date(boundary.getTime() + 7 * 86400000);
         return boundary;
-      }
-      // 마리당 소요시간 × BATCH_MAX(12) = "최대 배치를 걸어도 안전한" 가장 보수적인 마감 시각.
-      // 12보다 적게 보낼 계획이면 이 시각 이후에도 완료 시점이 경계 전일 수 있다 — deadline은 그 상한값.
-      function bonusDeadline(boundary, grade) {
-        return new Date(boundary.getTime() - GRADE_INFO[grade].hours * BATCH_MAX * 3600000);
       }
       function daysUntilBoundaryMidnights(now, boundary) {
         let d = 0;
@@ -798,35 +768,6 @@
       }
 
       /* ==========================================================
-         ② 마감 카운트다운
-         ========================================================== */
-      function renderDeadline() {
-        const area = document.getElementById("deadlineArea");
-        const now = new Date();
-        const boundary = window.__boundary || nextRotationBoundary(now);
-        const grade = state.grade;
-        const deadline = bonusDeadline(boundary, grade);
-        const bonusNow = isBonusGrade(grade);
-
-        let html = "";
-        if (bonusNow && now.getTime() < deadline.getTime()) {
-          html =
-            '<div class="deadline-card hot">⏳ <b>' + grade + '</b> 보너스 마감까지 <b id="cdDeadline"></b> (' +
-            fmtKSTClock(deadline) + " KST)<br/>" +
-            "12마리 꽉 채운 배치 기준 마감이에요 — 이 시각 이후에 12마리를 걸면 완료가 다음 주로 넘어가 2배를 못 받아요. " +
-            "더 적게 보내면 이후에도 아슬아슬하게 맞출 수 있어요(아래 타임라인에서 실제 완료 시점을 확인하세요). 마감 전까지 최대한 많이 태우는 게 이득이에요.</div>";
-        } else if (bonusNow) {
-          html =
-            '<div class="deadline-card cool">⏰ 마감이 지났어요. 지금 ' + grade + '을(를) 걸면 완료가 다음 로테이션으로 넘어가요.<br/>' +
-            "다음 주에도 " + grade + "이 보너스라면 2배가 적용돼요 (아니어도 손해는 없어요). 다음 주 보너스는 게임이 미리 보여주지 않아 확인은 불가능해요.</div>";
-        } else {
-          html =
-            '<div class="deadline-card cool">이번 주는 ' + grade + " 보너스가 아니에요. 비보너스 주 말미에는 완료를 다음 주로 넘겨도 손해가 없어요.</div>";
-        }
-        area.innerHTML = html;
-      }
-
-      /* ==========================================================
          입력부 렌더 (탭들)
          ========================================================== */
       function buildTabs() {
@@ -909,7 +850,7 @@
          배치 분할은 최적화하지 않는다 (핵심 결과 2번: 어떻게 쪼개도 코인 총량은 같음).
          ========================================================== */
       function simulate(opts) {
-        const { grade, N0, dailyCap, todayCapRemaining, s, now, boundary, bonusNow, deadline } = opts;
+        const { grade, N0, dailyCap, todayCapRemaining, s, now, boundary, bonusNow, gradeAlreadyUsed } = opts;
         const info = GRADE_INFO[grade];
         const nowMs = now.getTime(),
           boundaryMs = boundary.getTime();
@@ -929,7 +870,6 @@
           coinPlain = 0,
           coinBorderMin = 0,
           coinBorderMax = 0;
-        let deployedBeforeDeadline = 0;
         const timeline = [];
 
         function classify(startMs, completeMs, count) {
@@ -942,7 +882,11 @@
               coinPlain += count * info.coin;
               mult = "미적용 1배";
             }
-            if (bonusNow && startMs <= deadline.getTime()) deployedBeforeDeadline += count;
+          } else if (gradeAlreadyUsed) {
+            // 이 등급은 이번 시즌에 이미 보너스로 한 번 나왔다 — 같은 시즌 안에서 다시 보너스가 될 수 없으므로
+            // 경계를 넘기면 무조건 미적용(1배)로 확정된다. 불확실한 범위가 아니다.
+            coinPlain += count * info.coin;
+            mult = "미적용 1배 (경계 넘김, 확정)";
           } else {
             coinBorderMin += count * info.coin;
             coinBorderMax += count * info.coin * BONUS_MULT;
@@ -951,17 +895,28 @@
           timeline.push({ t: new Date(startMs), count, completeAt: new Date(completeMs), mult });
         }
 
+        // 비어있는 슬롯 여러 개에 재고를 몰아넣지 않고 최대한 균등하게 나눠서 완료 시각을
+        // 앞당긴다 (배치가 클수록 그 배치의 모든 마리가 다 같이 오래 기다려야 하므로,
+        // 슬롯 하나에 몰아주는 것보다 여러 슬롯에 고르게 나누는 쪽이 항상 더 빨리 끝난다).
         function tryFillAt(t) {
-          for (let i = 0; i < s; i++) {
-            if (slotFreeAt[i] <= t && stockQueue > 0) {
-              const put = Math.min(BATCH_MAX, stockQueue);
-              stockQueue -= put;
-              dispatchedTotal += put;
-              const completeAt = t + info.hours * put * 3600000; // 배치 완료시간 = 마리당 시간 × 마리 수
-              slotFreeAt[i] = completeAt;
-              classify(t, completeAt, put);
-            }
-          }
+          const freeIdxs = [];
+          for (let i = 0; i < s; i++) if (slotFreeAt[i] <= t) freeIdxs.push(i);
+          if (!freeIdxs.length || stockQueue <= 0) return;
+
+          const totalToPlace = Math.min(stockQueue, freeIdxs.length * BATCH_MAX);
+          const base = Math.floor(totalToPlace / freeIdxs.length);
+          let extra = totalToPlace % freeIdxs.length;
+
+          freeIdxs.forEach(function (i) {
+            let put = base + (extra > 0 ? 1 : 0);
+            if (extra > 0) extra--;
+            if (put <= 0) return;
+            stockQueue -= put;
+            dispatchedTotal += put;
+            const completeAt = t + info.hours * put * 3600000; // 배치 완료시간 = 마리당 시간 × 마리 수
+            slotFreeAt[i] = completeAt;
+            classify(t, completeAt, put);
+          });
         }
 
         const eventTimes = arrivals.map(function (a) {
@@ -994,9 +949,22 @@
           coinPlain,
           coinBorderMin,
           coinBorderMax,
-          deployedBeforeDeadline,
           timeline,
         };
+      }
+
+      // 이 등급의 소울이 이번 시즌에 (이번 주 포함) 이미 한 번이라도 보너스로 등장했는지.
+      // 등장했다면 같은 시즌 안에서는 다시 보너스가 될 수 없다 (한 시즌에 소울마다 보너스는 한 번뿐).
+      // 서버에 기록된 주뿐 아니라 사용자가 폴백으로 직접 고른 주(localStorage)도 포함해서 확인한다.
+      function gradeAlreadyUsedThisSeason(grade) {
+        if (!SEASON) return false;
+        for (let week = 1; week <= SEASON.weeks; week++) {
+          const names = getBonusForWeek(week);
+          if (names && names.some(function (n) { return SOUL_MAP[n] && SOUL_MAP[n].grade === grade; })) {
+            return true;
+          }
+        }
+        return false;
       }
 
       // 슬롯이 재고 걱정 없이 논스톱으로 돌았을 때 남은 기간 동안 처리 가능한 이론상 최대량.
@@ -1013,7 +981,6 @@
          ========================================================== */
       function recalcAll() {
         renderBonusCard();
-        renderDeadline();
         runCalculation();
       }
 
@@ -1029,13 +996,13 @@
         document.getElementById("inTodayCap").value = todayCapRemaining;
 
         const bonusNow = isBonusGrade(grade);
-        const deadline = bonusDeadline(boundary, grade);
+        const gradeAlreadyUsed = gradeAlreadyUsedThisSeason(grade);
 
         const maxSecureTotal = state.stock + todayCapRemaining + dailyCap * D;
 
         const sim = simulate({
           grade, N0: state.stock, dailyCap, todayCapRemaining,
-          s: state.slots, now, boundary, bonusNow, deadline,
+          s: state.slots, now, boundary, bonusNow, gradeAlreadyUsed,
         });
 
         const capacity = maxSlotCapacity(grade, state.slots, now, boundary);
@@ -1053,12 +1020,12 @@
           '<div class="result-row"><span>이월 재고</span><b>' + Math.max(0, Math.round(carryover)).toLocaleString() + '마리</b></div>' +
           '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' + Math.round(totalCoin).toLocaleString() + '코인</b></div>' +
           '<div class="result-row sub"><span>└ 보너스 적용</span><b>' + Math.round(sim.coinBonus).toLocaleString() + '</b></div>' +
-          '<div class="result-row sub"><span>└ 미적용</span><b>' + Math.round(sim.coinPlain).toLocaleString() + '</b></div>' +
-          '<div class="result-row sub"><span>└ 경계 넘김 (다음 주 보너스 여부에 따라)</span><b>' +
-            Math.round(sim.coinBorderMin).toLocaleString() + ' ~ ' + Math.round(sim.coinBorderMax).toLocaleString() + '</b></div>';
+          '<div class="result-row sub"><span>└ 미적용</span><b>' + Math.round(sim.coinPlain).toLocaleString() + '</b></div>';
 
-        if (bonusNow && now.getTime() < deadline.getTime()) {
-          html += '<div class="result-row"><span>마감 전 투입 가능</span><b>' + Math.round(sim.deployedBeforeDeadline).toLocaleString() + '마리</b></div>';
+        if (sim.coinBorderMin > 0 || sim.coinBorderMax > 0) {
+          html +=
+            '<div class="result-row sub"><span>└ 경계 넘김 (다음 주 보너스 여부에 따라)</span><b>' +
+            Math.round(sim.coinBorderMin).toLocaleString() + ' ~ ' + Math.round(sim.coinBorderMax).toLocaleString() + '</b></div>';
         }
         html += "</div>";
 
@@ -1073,15 +1040,6 @@
 
         // 경고
         let warnings = "";
-        if (SEASON) {
-          const seasonEndTs = window.__seasonEndTs;
-          const daysLeft = Math.ceil((seasonEndTs.getTime() - now.getTime()) / 86400000);
-          if (daysLeft <= 28) {
-            warnings +=
-              "⚠️ 시즌 종료(" + kstDateString(seasonEndTs) + ")까지 " + daysLeft + "일 남았어요. 이 시즌 안에 " + grade +
-              " 보너스 주가 오지 않으면 쟁여둔 소울은 2배를 받을 수 없어요. (전 시즌 소울은 파견은 되지만 보너스 대상이 아니에요)<br/>";
-          }
-        }
         const weeklyCycles = Math.floor(168 / (GRADE_INFO[grade].hours * BATCH_MAX)) + 1;
         const weeklyCapacity = state.slots * weeklyCycles * BATCH_MAX;
         if (maxSecureTotal > weeklyCapacity) {
@@ -1118,19 +1076,43 @@
           "</div></div>";
       }
 
+      // 같은 시각에 여러 슬롯이 동시에 채워지면(균등 분배라 흔함) 슬롯 수만큼 줄이 반복되므로,
+      // 시작/완료 시각과 배율이 같은 행은 하나로 합쳐서 "마리 × N슬롯"으로 보여준다.
+      function mergeTimelineRows(timeline) {
+        const groups = [];
+        const index = {};
+        timeline.forEach(function (row) {
+          const key = row.t.getTime() + "|" + row.completeAt.getTime() + "|" + row.mult;
+          if (!(key in index)) {
+            index[key] = groups.length;
+            groups.push({ t: row.t, completeAt: row.completeAt, mult: row.mult, totalCount: 0, slots: 0, perSlot: [] });
+          }
+          const g = groups[index[key]];
+          g.totalCount += row.count;
+          g.slots += 1;
+          g.perSlot.push(row.count);
+        });
+        return groups;
+      }
+
       function renderTimeline(timeline) {
         const box = document.getElementById("timelineTable");
         if (!timeline.length) {
           box.innerHTML = '<div class="empty-msg">표시할 파견 내역이 없어요.</div>';
           return;
         }
+        const groups = mergeTimelineRows(timeline);
         box.innerHTML =
           '<table class="timeline"><thead><tr><th>시작</th><th>완료</th><th>마리</th><th>배율</th></tr></thead><tbody>' +
-          timeline
-            .map(function (row) {
+          groups
+            .map(function (g) {
+              const marriLabel =
+                g.slots > 1
+                  ? g.totalCount + " (" + g.perSlot.join("+") + " × " + g.slots + "슬롯)"
+                  : String(g.totalCount);
               return (
-                "<tr><td>" + fmtKSTClock(row.t) + "</td><td>" + fmtKSTClock(row.completeAt) + "</td><td>" +
-                row.count + "</td><td>" + row.mult + "</td></tr>"
+                "<tr><td>" + fmtKSTClock(g.t) + "</td><td>" + fmtKSTClock(g.completeAt) + "</td><td>" +
+                marriLabel + "</td><td>" + g.mult + "</td></tr>"
               );
             })
             .join("") +
@@ -1152,13 +1134,6 @@
         if (seasonEndTs) {
           const el2 = document.getElementById("cdSeason");
           if (el2) el2.textContent = fmtDuration(seasonEndTs.getTime() - now.getTime());
-        }
-        const dl = document.getElementById("cdDeadline");
-        if (dl) {
-          const boundary2 = window.__boundary || nextRotationBoundary(now);
-          const deadline = bonusDeadline(boundary2, state.grade);
-          dl.textContent = fmtDuration(deadline.getTime() - now.getTime());
-          if (deadline.getTime() <= now.getTime()) renderDeadline();
         }
       }
 
