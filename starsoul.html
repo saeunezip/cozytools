@@ -254,19 +254,23 @@
         color: #90a4ae;
         margin-top: 4px;
       }
-      .range-row {
+      .checkbox-field {
         display: flex;
-        align-items: center;
-        gap: 10px;
+        align-items: flex-start;
+        gap: 9px;
+        cursor: pointer;
+        font-size: 13.5px;
+        color: #546e7a;
+        line-height: 1.5;
       }
-      .range-row input[type="range"] {
-        flex: 1;
-      }
-      .range-row .range-val {
+      .checkbox-field input {
         flex: none;
-        width: 34px;
-        text-align: right;
-        font-weight: bold;
+        width: 18px;
+        height: 18px;
+        margin-top: 1px;
+        accent-color: #1f3b73;
+      }
+      .checkbox-field b {
         color: #1f3b73;
       }
 
@@ -312,18 +316,6 @@
         border-radius: 8px;
         margin-left: 6px;
         vertical-align: middle;
-      }
-
-      .estimate-box {
-        border: 1.5px dashed #cfd8dc;
-        background: #fafbfc;
-        border-radius: 12px;
-        padding: 12px 14px;
-        margin-top: 12px;
-        color: #78909c;
-      }
-      .estimate-box b {
-        color: #546e7a;
       }
 
       /* 아코디언 */
@@ -443,12 +435,10 @@
         </div>
 
         <div class="field">
-          <label>목표 등급을 심은 친구에게서 하루 몇 개나 확실히 받을 수 있나요?</label>
-          <div class="range-row">
-            <input type="range" id="inFriend" min="0" max="4" step="1" value="0" />
-            <span class="range-val" id="friendVal">0</span>
-          </div>
-          <div class="field-note">추정치에만 반영돼요 (본 계산 합계에는 안 더함)</div>
+          <label class="checkbox-field">
+            <input type="checkbox" id="inFriendInclude" />
+            <span>친구 소울 포함 (같은 등급을 심은 친구에게서 매일 최대 <b id="friendMaxLabel">4</b>개 추가로 받는다고 가정)</span>
+          </label>
         </div>
       </div>
 
@@ -584,7 +574,7 @@
         stock: Number(localStorage.getItem("starsoul_stock")) || 0,
         path: localStorage.getItem("starsoul_path") || "free",
         slots: Number(localStorage.getItem("starsoul_slots")) || 5,
-        friend: Number(localStorage.getItem("starsoul_friend")) || 0,
+        friendInclude: localStorage.getItem("starsoul_friendInclude") === "1",
       };
 
       /* ==========================================================
@@ -793,8 +783,8 @@
           b.classList.toggle("on", Number(b.dataset.s) === state.slots);
         });
         document.getElementById("inStock").value = state.stock;
-        document.getElementById("inFriend").value = state.friend;
-        document.getElementById("friendVal").textContent = state.friend;
+        document.getElementById("inFriendInclude").checked = state.friendInclude;
+        document.getElementById("friendMaxLabel").textContent = FRIEND_MAX;
       }
 
       function setState(key, val) {
@@ -812,21 +802,20 @@
           recalcAll();
         });
         document.getElementById("inTodayCap").addEventListener("input", function (e) {
-          const cap = DAILY_CAP[state.path];
+          const cap = DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0);
           const v = Math.max(0, Math.min(cap, parseInt(e.target.value, 10) || 0));
           localStorage.setItem("starsoul_todayCap", v);
           localStorage.setItem("starsoul_todayCapDate", kstDateString(new Date()));
           recalcAll();
         });
-        document.getElementById("inFriend").addEventListener("input", function (e) {
-          state.friend = Math.max(0, Math.min(FRIEND_MAX, parseInt(e.target.value, 10) || 0));
-          document.getElementById("friendVal").textContent = state.friend;
-          localStorage.setItem("starsoul_friend", state.friend);
+        document.getElementById("inFriendInclude").addEventListener("change", function (e) {
+          state.friendInclude = e.target.checked;
+          localStorage.setItem("starsoul_friendInclude", state.friendInclude ? "1" : "0");
           recalcAll();
         });
       }
 
-      function getTodayCap() {
+      function getTodayCap(cap) {
         const today = kstDateString(new Date());
         const savedDate = localStorage.getItem("starsoul_todayCapDate");
         if (savedDate !== today) {
@@ -834,7 +823,7 @@
           localStorage.setItem("starsoul_todayCap", 0);
           return 0;
         }
-        return Math.max(0, Math.min(DAILY_CAP[state.path], Number(localStorage.getItem("starsoul_todayCap")) || 0));
+        return Math.max(0, Math.min(cap, Number(localStorage.getItem("starsoul_todayCap")) || 0));
       }
 
       function toggleTimeline() {
@@ -868,6 +857,7 @@
         let dispatchedTotal = 0;
         let coinBonus = 0,
           coinPlain = 0,
+          plainCount = 0,
           coinBorderMin = 0,
           coinBorderMax = 0;
         const timeline = [];
@@ -880,12 +870,14 @@
               mult = "보너스 " + BONUS_MULT + "배";
             } else {
               coinPlain += count * info.coin;
+              plainCount += count;
               mult = "미적용 1배";
             }
           } else if (gradeAlreadyUsed) {
             // 이 등급은 이번 시즌에 이미 보너스로 한 번 나왔다 — 같은 시즌 안에서 다시 보너스가 될 수 없으므로
             // 경계를 넘기면 무조건 미적용(1배)로 확정된다. 불확실한 범위가 아니다.
             coinPlain += count * info.coin;
+            plainCount += count;
             mult = "미적용 1배 (경계 넘김, 확정)";
           } else {
             coinBorderMin += count * info.coin;
@@ -962,10 +954,18 @@
           dispatchedTotal,
           coinBonus,
           coinPlain,
+          plainCount,
           coinBorderMin,
           coinBorderMax,
           timeline,
         };
+      }
+
+      // 가속(다이아) 비용 = ceil(남은 시간 / 5분) 다이아. 아직 시작 전인 배치를 지금 즉시
+      // 완료시킨다고 가정하면 남은 시간 = 마리 수 × 마리당 소요시간 그대로다.
+      function accelDiamondCost(count, grade) {
+        const minutes = count * GRADE_INFO[grade].hours * 60;
+        return Math.ceil(minutes / 5);
       }
 
       // 이 등급의 소울이 이번 시즌에 (이번 주 포함) 이미 한 번이라도 보너스로 등장했는지.
@@ -1004,8 +1004,10 @@
         const boundary = window.__boundary || nextRotationBoundary(now);
         const D = daysUntilBoundaryMidnights(now, boundary);
         const grade = state.grade;
-        const dailyCap = DAILY_CAP[state.path];
-        const todayCapRemaining = getTodayCap();
+        const baseDailyCap = DAILY_CAP[state.path];
+        const friendPart = state.friendInclude ? FRIEND_MAX : 0;
+        const dailyCap = baseDailyCap + friendPart;
+        const todayCapRemaining = getTodayCap(dailyCap);
         document.getElementById("inTodayCap").max = dailyCap;
         if (Number(document.getElementById("inTodayCap").value) > dailyCap) document.getElementById("inTodayCap").value = dailyCap;
         document.getElementById("inTodayCap").value = todayCapRemaining;
@@ -1025,17 +1027,27 @@
         const carryover = maxSecureTotal - sim.dispatchedTotal;
         const totalCoin = sim.coinBonus + sim.coinPlain;
 
+        const stockBreakdown =
+          '보유 ' + state.stock.toLocaleString() + ' + 상한 기준 획득 ' + Math.round(baseDailyCap * D).toLocaleString() +
+          (friendPart > 0 ? ' + 친구 획득 ' + Math.round(friendPart * D).toLocaleString() : '');
+
         let html =
           '<div class="result-box">' +
           '<div class="result-title">이번 로테이션 종료까지 (' + fmtDuration(boundary.getTime() - now.getTime()) + ' 남음)</div>' +
           '<div class="result-row"><span>최대 확보 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(maxSecureTotal).toLocaleString() + '마리</b></div>' +
-          '<div class="result-row sub"><span>보유 ' + state.stock.toLocaleString() + ' + 상한 기준 획득 ' + Math.round(maxSecureTotal - state.stock).toLocaleString() + '</span></div>' +
+          '<div class="result-row sub"><span>' + stockBreakdown + '</span></div>' +
           '<div class="result-row"><span>최대 파견 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(sim.dispatchedTotal).toLocaleString() + '마리</b></div>' +
           '<div class="result-row sub"><span>슬롯 가동률 ' + utilization.toFixed(0) + '% (재고가 무한해도 슬롯이 처리 가능한 최대치 대비)</span></div>' +
           '<div class="result-row"><span>이월 재고</span><b>' + Math.max(0, Math.round(carryover)).toLocaleString() + '마리</b></div>' +
           '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' + Math.round(totalCoin).toLocaleString() + '코인</b></div>' +
-          '<div class="result-row sub"><span>└ 보너스 적용</span><b>' + Math.round(sim.coinBonus).toLocaleString() + '</b></div>' +
-          '<div class="result-row sub"><span>└ 미적용</span><b>' + Math.round(sim.coinPlain).toLocaleString() + '</b></div>';
+          '<div class="result-row sub"><span>└ 보너스 적용</span><b>' + Math.round(sim.coinBonus).toLocaleString() + '</b></div>';
+
+        if (sim.plainCount > 0) {
+          const accelDia = accelDiamondCost(sim.plainCount, grade);
+          html +=
+            '<div class="result-row sub"><span>└ 미적용 (다이아로 즉시 가속 시)</span><b>' +
+            accelDia.toLocaleString() + '다이아 - ' + Math.round(sim.coinPlain).toLocaleString() + '코인</b></div>';
+        }
 
         if (sim.coinBorderMin > 0 || sim.coinBorderMax > 0) {
           html +=
@@ -1043,15 +1055,6 @@
             Math.round(sim.coinBorderMin).toLocaleString() + ' ~ ' + Math.round(sim.coinBorderMax).toLocaleString() + '</b></div>';
         }
         html += "</div>";
-
-        const friendMin = state.friend * GRADE_INFO.R.coin;
-        const friendMax = state.friend * GRADE_INFO.SSR.coin * BONUS_MULT;
-        html +=
-          '<div class="estimate-box">' +
-          '친구 소울 ' + state.friend + '개/일 기준 <b>' + friendMin.toLocaleString() + ' ~ ' + friendMax.toLocaleString() + '코인</b>' +
-          ' (R 미적용 최소 ~ SSR 보너스 최대)' +
-          '<br/><span style="font-size:11px;">친구가 어떤 등급을 심었는지, 그날이 보너스 주인지에 따라 달라지는 참고 수치예요. 위 합계에는 포함되지 않았어요.</span>' +
-          "</div>";
 
         // 경고
         let warnings = "";
@@ -1158,7 +1161,7 @@
       buildTabs();
       syncTabs();
       wireInputs();
-      document.getElementById("inTodayCap").value = getTodayCap();
+      document.getElementById("inTodayCap").value = getTodayCap(DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0));
       loadSeasons();
       setInterval(tickCountdowns, 1000);
     </script>
