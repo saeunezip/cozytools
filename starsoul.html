@@ -509,6 +509,8 @@
          상수
          ========================================================== */
       const API_URL = "https://cozytools-backend.saeunezip.workers.dev";
+      // hours = 마리 1개당 소요시간. 배치 완료 시간은 항상 count(마리 수) × hours로 계산한다
+      // (12마리 배치가 통째로 hours시간만에 끝나는 게 아니다 — 예: SSR 12마리 = 2h × 12 = 24시간).
       const GRADE_INFO = {
         SSR: { coin: 4, hours: 2 },
         SR: { coin: 3, hours: 1.5 },
@@ -562,8 +564,10 @@
         if (boundary.getTime() <= now.getTime()) boundary = new Date(boundary.getTime() + 7 * 86400000);
         return boundary;
       }
+      // 마리당 소요시간 × BATCH_MAX(12) = "최대 배치를 걸어도 안전한" 가장 보수적인 마감 시각.
+      // 12보다 적게 보낼 계획이면 이 시각 이후에도 완료 시점이 경계 전일 수 있다 — deadline은 그 상한값.
       function bonusDeadline(boundary, grade) {
-        return new Date(boundary.getTime() - GRADE_INFO[grade].hours * 3600000);
+        return new Date(boundary.getTime() - GRADE_INFO[grade].hours * BATCH_MAX * 3600000);
       }
       function daysUntilBoundaryMidnights(now, boundary) {
         let d = 0;
@@ -809,7 +813,8 @@
           html =
             '<div class="deadline-card hot">⏳ <b>' + grade + '</b> 보너스 마감까지 <b id="cdDeadline"></b> (' +
             fmtKSTClock(deadline) + " KST)<br/>" +
-            "이 시각 이후에 걸면 완료가 다음 주로 넘어가 2배를 못 받아요. 마감 전까지 최대한 많이 태우는 게 이득이에요.</div>";
+            "12마리 꽉 채운 배치 기준 마감이에요 — 이 시각 이후에 12마리를 걸면 완료가 다음 주로 넘어가 2배를 못 받아요. " +
+            "더 적게 보내면 이후에도 아슬아슬하게 맞출 수 있어요(아래 타임라인에서 실제 완료 시점을 확인하세요). 마감 전까지 최대한 많이 태우는 게 이득이에요.</div>";
         } else if (bonusNow) {
           html =
             '<div class="deadline-card cool">⏰ 마감이 지났어요. 지금 ' + grade + '을(를) 걸면 완료가 다음 로테이션으로 넘어가요.<br/>' +
@@ -952,7 +957,7 @@
               const put = Math.min(BATCH_MAX, stockQueue);
               stockQueue -= put;
               dispatchedTotal += put;
-              const completeAt = t + info.hours * 3600000;
+              const completeAt = t + info.hours * put * 3600000; // 배치 완료시간 = 마리당 시간 × 마리 수
               slotFreeAt[i] = completeAt;
               classify(t, completeAt, put);
             }
@@ -998,7 +1003,8 @@
       // (실제 파견 마리 수를 이 값과 비교하면 "재고가 병목인지 슬롯이 병목인지"를 알 수 있다)
       function maxSlotCapacity(grade, s, now, boundary) {
         const hoursLeft = (boundary.getTime() - now.getTime()) / 3600000;
-        const cyclesPerSlot = Math.floor(hoursLeft / GRADE_INFO[grade].hours) + 1;
+        const hoursPerFullBatch = GRADE_INFO[grade].hours * BATCH_MAX; // 12마리 꽉 채운 배치 1번 완료까지 걸리는 시간
+        const cyclesPerSlot = Math.floor(hoursLeft / hoursPerFullBatch) + 1;
         return s * cyclesPerSlot * BATCH_MAX;
       }
 
@@ -1076,7 +1082,7 @@
               " 보너스 주가 오지 않으면 쟁여둔 소울은 2배를 받을 수 없어요. (전 시즌 소울은 파견은 되지만 보너스 대상이 아니에요)<br/>";
           }
         }
-        const weeklyCycles = Math.floor(168 / GRADE_INFO[grade].hours) + 1;
+        const weeklyCycles = Math.floor(168 / (GRADE_INFO[grade].hours * BATCH_MAX)) + 1;
         const weeklyCapacity = state.slots * weeklyCycles * BATCH_MAX;
         if (maxSecureTotal > weeklyCapacity) {
           warnings +=
