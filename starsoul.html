@@ -445,9 +445,16 @@
           <div class="toggle-row" id="gradeTabs"></div>
         </div>
 
-        <div class="field">
-          <label>지금 보유 수량</label>
-          <input type="number" id="inStock" inputmode="numeric" min="0" value="0" />
+        <div class="field-row">
+          <div class="field">
+            <label>지금 보유 수량</label>
+            <input type="number" id="inStock" inputmode="numeric" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label>오늘 획득 상한이 얼마나 남았나요?</label>
+            <input type="number" id="inTodayCap" inputmode="numeric" min="0" value="0" />
+            <div class="field-note">"지급받았나"가 아니라 오늘 캡의 남은 양</div>
+          </div>
         </div>
 
         <div class="field">
@@ -460,19 +467,6 @@
           <div class="toggle-row" id="slotTabs"></div>
         </div>
 
-        <div class="field-row">
-          <div class="field">
-            <label>하루 파견 갱신 횟수</label>
-            <input type="number" id="inK" inputmode="numeric" min="1" max="6" value="3" />
-            <div class="field-note">하루에 몇 번 들어와서 슬롯을 다시 채우나요</div>
-          </div>
-          <div class="field">
-            <label>오늘 획득 상한이 얼마나 남았나요?</label>
-            <input type="number" id="inTodayCap" inputmode="numeric" min="0" value="0" />
-            <div class="field-note">"지급받았나"가 아니라 오늘 캡의 남은 양</div>
-          </div>
-        </div>
-
         <div class="field">
           <label>목표 등급을 심은 친구에게서 하루 몇 개나 확실히 받을 수 있나요?</label>
           <div class="range-row">
@@ -480,18 +474,6 @@
             <span class="range-val" id="friendVal">0</span>
           </div>
           <div class="field-note">추정치에만 반영돼요 (본 계산 합계에는 안 더함)</div>
-        </div>
-
-        <button class="accordion-head" onclick="toggleAdvanced()" style="margin-top: 6px">
-          <h3 style="font-size: 13.5px">고급 설정</h3>
-          <span class="accordion-arrow" id="advArrow">▾</span>
-        </button>
-        <div id="advancedBody" class="accordion-body">
-          <div class="field" style="margin-top: 10px">
-            <label>하루 상한 달성률 (%)</label>
-            <input type="number" id="inRate" inputmode="numeric" min="1" max="100" value="100" />
-            <div class="field-note">매일 캡을 다 못 채우는 경우용. 100%면 결과가 곧 이론 최대치. 활동 시간대는 08:00~24:00 KST 고정으로 계산해요.</div>
-          </div>
         </div>
       </div>
 
@@ -540,8 +522,6 @@
         SLOT_MAX = 5,
         SLOT_OPTIONS = [2, 3, 4, 5];
       const BATCH_MAX = 12;
-      const ACTIVITY_START_H = 8,
-        ACTIVITY_END_H = 24; // KST 고정
 
       /* ==========================================================
          KST 헬퍼 — UTC+9 고정 오프셋. new Date()의 로컬 타임존에 의존하지 않는다.
@@ -630,20 +610,52 @@
         stock: Number(localStorage.getItem("starsoul_stock")) || 0,
         path: localStorage.getItem("starsoul_path") || "free",
         slots: Number(localStorage.getItem("starsoul_slots")) || 5,
-        k: Number(localStorage.getItem("starsoul_k")) || 3,
-        rate: Number(localStorage.getItem("starsoul_rate")) || 100,
         friend: Number(localStorage.getItem("starsoul_friend")) || 0,
       };
 
       /* ==========================================================
          데이터 로딩 + ① 보너스 카드 + 폴백
          ========================================================== */
+      // 같은 시작일(id)로 시즌이 실수로 두 번 등록됐을 때를 대비한 방어적 병합.
+      // souls는 dorazyId가 채워진 쪽을 우선하고, 주차별 보너스는 null이 아닌 값을 우선한다
+      // (등록 순서와 무관하게 "더 완전한 데이터"가 이기도록).
+      function mergeSeasonsById(seasons) {
+        const byId = {};
+        const order = [];
+        seasons.forEach(function (s) {
+          if (!byId[s.id]) {
+            byId[s.id] = JSON.parse(JSON.stringify(s));
+            order.push(s.id);
+            return;
+          }
+          const merged = byId[s.id];
+          merged.souls = merged.souls.map(function (soul) {
+            if (soul.dorazyId) return soul;
+            const other = s.souls.find(function (x) {
+              return x.name === soul.name;
+            });
+            return other && other.dorazyId ? other : soul;
+          });
+          merged.bonus = merged.bonus.map(function (b) {
+            if (b.souls) return b;
+            const other = s.bonus.find(function (x) {
+              return x.week === b.week;
+            });
+            return other && other.souls ? other : b;
+          });
+          if (s.createdAt > merged.createdAt) merged.createdAt = s.createdAt;
+        });
+        return order.map(function (id) {
+          return byId[id];
+        });
+      }
+
       async function loadSeasons() {
         try {
           const res = await fetch(API_URL + "/seasons");
           const data = await res.json();
           if (!data.ok) throw new Error(data.error || "불러오기 실패");
-          SEASONS = data.seasons || [];
+          SEASONS = mergeSeasonsById(data.seasons || []);
           SEASON = SEASONS.length ? SEASONS[SEASONS.length - 1] : null;
           if (SEASON) {
             SOUL_MAP = {};
@@ -835,8 +847,6 @@
           b.classList.toggle("on", Number(b.dataset.s) === state.slots);
         });
         document.getElementById("inStock").value = state.stock;
-        document.getElementById("inK").value = state.k;
-        document.getElementById("inRate").value = state.rate;
         document.getElementById("inFriend").value = state.friend;
         document.getElementById("friendVal").textContent = state.friend;
       }
@@ -855,21 +865,11 @@
           localStorage.setItem("starsoul_stock", state.stock);
           recalcAll();
         });
-        document.getElementById("inK").addEventListener("input", function (e) {
-          state.k = Math.max(1, Math.min(6, parseInt(e.target.value, 10) || 1));
-          localStorage.setItem("starsoul_k", state.k);
-          recalcAll();
-        });
         document.getElementById("inTodayCap").addEventListener("input", function (e) {
           const cap = DAILY_CAP[state.path];
           const v = Math.max(0, Math.min(cap, parseInt(e.target.value, 10) || 0));
           localStorage.setItem("starsoul_todayCap", v);
           localStorage.setItem("starsoul_todayCapDate", kstDateString(new Date()));
-          recalcAll();
-        });
-        document.getElementById("inRate").addEventListener("input", function (e) {
-          state.rate = Math.max(1, Math.min(100, parseInt(e.target.value, 10) || 100));
-          localStorage.setItem("starsoul_rate", state.rate);
           recalcAll();
         });
         document.getElementById("inFriend").addEventListener("input", function (e) {
@@ -891,11 +891,6 @@
         return Math.max(0, Math.min(DAILY_CAP[state.path], Number(localStorage.getItem("starsoul_todayCap")) || 0));
       }
 
-      function toggleAdvanced() {
-        const body = document.getElementById("advancedBody");
-        const open = body.classList.toggle("open");
-        document.getElementById("advArrow").classList.toggle("open", open);
-      }
       function toggleTimeline() {
         const body = document.getElementById("timelineBody");
         const open = body.classList.toggle("open");
@@ -903,42 +898,28 @@
       }
 
       /* ==========================================================
-         시뮬레이션 (3단계) — 이산 시간축, 배치 분할은 최적화하지 않는다 (핵심 결과 2번)
+         시뮬레이션 — 이벤트 기반. "확인하러 들어오는 횟수(k)" 같은 입력 없이,
+         슬롯은 비는 즉시 재고가 있으면 바로 채워진다고 가정한다 (이론 최대치이므로
+         가장 낙관적인 실행을 가정 — 실제로는 접속 빈도만큼 늦어질 수 있다).
+         배치 분할은 최적화하지 않는다 (핵심 결과 2번: 어떻게 쪼개도 코인 총량은 같음).
          ========================================================== */
-      function buildDispatchTimes(now, boundary, k) {
-        const times = [];
-        const todayStr = kstDateString(now);
-        let cursorDay = now;
-        let guard = 0;
-        while (guard++ < 60) {
-          const dStr = kstDateString(cursorDay);
-          const dayStart = ymdToKSTInstant(dStr, 0, 0);
-          for (let i = 0; i < k; i++) {
-            const hourOffset = ACTIVITY_START_H + (i * (ACTIVITY_END_H - ACTIVITY_START_H)) / k;
-            const t = new Date(dayStart.getTime() + hourOffset * 3600000);
-            if (t.getTime() >= now.getTime() && t.getTime() < boundary.getTime()) times.push(t);
-          }
-          cursorDay = new Date(dayStart.getTime() + 86400000);
-          if (cursorDay.getTime() >= boundary.getTime()) break;
-        }
-        times.sort(function (a, b) {
-          return a.getTime() - b.getTime();
-        });
-        return times;
-      }
-
       function simulate(opts) {
-        const { grade, N0, dailyCapEff, todayCapRemaining, s, k, now, boundary, bonusNow, deadline } = opts;
+        const { grade, N0, dailyCap, todayCapRemaining, s, now, boundary, bonusNow, deadline } = opts;
         const info = GRADE_INFO[grade];
-        const dispatchTimes = buildDispatchTimes(now, boundary, k);
-        const todayStr = kstDateString(now);
+        const nowMs = now.getTime(),
+          boundaryMs = boundary.getTime();
 
-        let stock = N0 + todayCapRemaining;
-        const addedDays = { [todayStr]: true };
-        const slotEnds = new Array(s).fill(null);
+        // 도착 이벤트: 지금(보유+오늘 남은 캡) + 남은 자정마다(일일 상한)
+        const arrivals = [{ t: nowMs, amount: N0 + todayCapRemaining }];
+        let cursor = nextMidnightKST(now);
+        while (cursor.getTime() < boundaryMs) {
+          arrivals.push({ t: cursor.getTime(), amount: dailyCap });
+          cursor = new Date(cursor.getTime() + 86400000);
+        }
 
+        let stockQueue = 0;
+        const slotFreeAt = new Array(s).fill(nowMs);
         let dispatchedTotal = 0;
-        let capacityTotal = 0;
         let coinBonus = 0,
           coinPlain = 0,
           coinBorderMin = 0,
@@ -946,62 +927,79 @@
         let deployedBeforeDeadline = 0;
         const timeline = [];
 
-        dispatchTimes.forEach(function (t) {
-          const dStr = kstDateString(t);
-          if (!addedDays[dStr]) {
-            addedDays[dStr] = true;
-            stock += dailyCapEff;
-          }
-          for (let i = 0; i < s; i++) {
-            if (slotEnds[i] !== null && slotEnds[i].getTime() <= t.getTime()) slotEnds[i] = null;
-          }
-          const freeSlots = slotEnds.filter(function (e) {
-            return e === null;
-          }).length;
-          capacityTotal += freeSlots * BATCH_MAX;
-
-          const toDeploy = Math.min(stock, freeSlots * BATCH_MAX);
-          if (toDeploy > 0) {
-            stock -= toDeploy;
-            dispatchedTotal += toDeploy;
-            const completeAt = new Date(t.getTime() + info.hours * 3600000);
-            let remaining = toDeploy;
-            for (let i = 0; i < s && remaining > 0; i++) {
-              if (slotEnds[i] === null) {
-                slotEnds[i] = completeAt;
-                remaining -= Math.min(BATCH_MAX, remaining);
-              }
-            }
-            let mult;
-            if (completeAt.getTime() < boundary.getTime()) {
-              if (bonusNow) {
-                coinBonus += toDeploy * info.coin * BONUS_MULT;
-                mult = "보너스 " + BONUS_MULT + "배";
-              } else {
-                coinPlain += toDeploy * info.coin;
-                mult = "미적용 1배";
-              }
-              if (bonusNow && t.getTime() <= deadline.getTime()) deployedBeforeDeadline += toDeploy;
+        function classify(startMs, completeMs, count) {
+          let mult;
+          if (completeMs < boundaryMs) {
+            if (bonusNow) {
+              coinBonus += count * info.coin * BONUS_MULT;
+              mult = "보너스 " + BONUS_MULT + "배";
             } else {
-              coinBorderMin += toDeploy * info.coin;
-              coinBorderMax += toDeploy * info.coin * BONUS_MULT;
-              mult = "경계 넘김";
+              coinPlain += count * info.coin;
+              mult = "미적용 1배";
             }
-            timeline.push({ t, count: toDeploy, completeAt, mult });
+            if (bonusNow && startMs <= deadline.getTime()) deployedBeforeDeadline += count;
+          } else {
+            coinBorderMin += count * info.coin;
+            coinBorderMax += count * info.coin * BONUS_MULT;
+            mult = "경계 넘김";
           }
+          timeline.push({ t: new Date(startMs), count, completeAt: new Date(completeMs), mult });
+        }
+
+        function tryFillAt(t) {
+          for (let i = 0; i < s; i++) {
+            if (slotFreeAt[i] <= t && stockQueue > 0) {
+              const put = Math.min(BATCH_MAX, stockQueue);
+              stockQueue -= put;
+              dispatchedTotal += put;
+              const completeAt = t + info.hours * 3600000;
+              slotFreeAt[i] = completeAt;
+              classify(t, completeAt, put);
+            }
+          }
+        }
+
+        const eventTimes = arrivals.map(function (a) {
+          return a.t;
         });
+        const processed = new Set();
+        let guard = 0;
+        while (eventTimes.length && guard++ < 2000) {
+          eventTimes.sort(function (a, b) {
+            return a - b;
+          });
+          const t = eventTimes.shift();
+          if (t >= boundaryMs || processed.has(t)) continue;
+          processed.add(t);
+
+          arrivals.forEach(function (a) {
+            if (a.t === t) stockQueue += a.amount;
+          });
+
+          const before = slotFreeAt.slice();
+          tryFillAt(t);
+          for (let i = 0; i < s; i++) {
+            if (slotFreeAt[i] !== before[i] && slotFreeAt[i] < boundaryMs) eventTimes.push(slotFreeAt[i]);
+          }
+        }
 
         return {
           dispatchedTotal,
-          capacityTotal,
           coinBonus,
           coinPlain,
           coinBorderMin,
           coinBorderMax,
           deployedBeforeDeadline,
           timeline,
-          carryover: N0 + todayCapRemaining - dispatchedTotal + (dailyCapEff * (Object.keys(addedDays).length - 1)),
         };
+      }
+
+      // 슬롯이 재고 걱정 없이 논스톱으로 돌았을 때 남은 기간 동안 처리 가능한 이론상 최대량.
+      // (실제 파견 마리 수를 이 값과 비교하면 "재고가 병목인지 슬롯이 병목인지"를 알 수 있다)
+      function maxSlotCapacity(grade, s, now, boundary) {
+        const hoursLeft = (boundary.getTime() - now.getTime()) / 3600000;
+        const cyclesPerSlot = Math.floor(hoursLeft / GRADE_INFO[grade].hours) + 1;
+        return s * cyclesPerSlot * BATCH_MAX;
       }
 
       /* ==========================================================
@@ -1019,7 +1017,6 @@
         const D = daysUntilBoundaryMidnights(now, boundary);
         const grade = state.grade;
         const dailyCap = DAILY_CAP[state.path];
-        const dailyCapEff = dailyCap * (state.rate / 100);
         const todayCapRemaining = getTodayCap();
         document.getElementById("inTodayCap").max = dailyCap;
         if (Number(document.getElementById("inTodayCap").value) > dailyCap) document.getElementById("inTodayCap").value = dailyCap;
@@ -1028,15 +1025,16 @@
         const bonusNow = isBonusGrade(grade);
         const deadline = bonusDeadline(boundary, grade);
 
-        const maxSecureTotal = state.stock + todayCapRemaining + dailyCapEff * D;
-        const friendEstimate = state.friend * (D + 1);
+        const maxSecureTotal = state.stock + todayCapRemaining + dailyCap * D;
 
         const sim = simulate({
-          grade, N0: state.stock, dailyCapEff, todayCapRemaining,
-          s: state.slots, k: state.k, now, boundary, bonusNow, deadline,
+          grade, N0: state.stock, dailyCap, todayCapRemaining,
+          s: state.slots, now, boundary, bonusNow, deadline,
         });
 
-        const utilization = sim.capacityTotal > 0 ? (sim.dispatchedTotal / sim.capacityTotal) * 100 : 0;
+        const capacity = maxSlotCapacity(grade, state.slots, now, boundary);
+        const utilization = capacity > 0 ? (sim.dispatchedTotal / capacity) * 100 : 0;
+        const carryover = maxSecureTotal - sim.dispatchedTotal;
         const totalCoin = sim.coinBonus + sim.coinPlain;
 
         let html =
@@ -1045,8 +1043,8 @@
           '<div class="result-row"><span>최대 확보 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(maxSecureTotal).toLocaleString() + '마리</b></div>' +
           '<div class="result-row sub"><span>보유 ' + state.stock.toLocaleString() + ' + 상한 기준 획득 ' + Math.round(maxSecureTotal - state.stock).toLocaleString() + '</span></div>' +
           '<div class="result-row"><span>최대 파견 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(sim.dispatchedTotal).toLocaleString() + '마리</b></div>' +
-          '<div class="result-row sub"><span>슬롯 가동률 ' + utilization.toFixed(0) + '%</span></div>' +
-          '<div class="result-row"><span>이월 재고</span><b>' + Math.max(0, Math.round(sim.carryover)).toLocaleString() + '마리</b></div>' +
+          '<div class="result-row sub"><span>슬롯 가동률 ' + utilization.toFixed(0) + '% (재고가 무한해도 슬롯이 처리 가능한 최대치 대비)</span></div>' +
+          '<div class="result-row"><span>이월 재고</span><b>' + Math.max(0, Math.round(carryover)).toLocaleString() + '마리</b></div>' +
           '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' + Math.round(totalCoin).toLocaleString() + '코인</b></div>' +
           '<div class="result-row sub"><span>└ 보너스 적용</span><b>' + Math.round(sim.coinBonus).toLocaleString() + '</b></div>' +
           '<div class="result-row sub"><span>└ 미적용</span><b>' + Math.round(sim.coinPlain).toLocaleString() + '</b></div>' +
@@ -1058,11 +1056,13 @@
         }
         html += "</div>";
 
+        const friendMin = state.friend * GRADE_INFO.R.coin;
+        const friendMax = state.friend * GRADE_INFO.SSR.coin * BONUS_MULT;
         html +=
           '<div class="estimate-box">' +
-          '친구 소울 ' + state.friend + '개/일 기준 최대 +' + Math.round(friendEstimate).toLocaleString() + '마리 → +' +
-          Math.round(friendEstimate * GRADE_INFO[grade].coin).toLocaleString() + '코인' +
-          '<br/><span style="font-size:11px;">친구가 그 등급을 심었는지에 따라 달라지는 참고 수치예요. 위 합계에는 포함되지 않았어요.</span>' +
+          '친구 소울 ' + state.friend + '개/일 기준 <b>' + friendMin.toLocaleString() + ' ~ ' + friendMax.toLocaleString() + '코인</b>' +
+          ' (R 미적용 최소 ~ SSR 보너스 최대)' +
+          '<br/><span style="font-size:11px;">친구가 어떤 등급을 심었는지, 그날이 보너스 주인지에 따라 달라지는 참고 수치예요. 위 합계에는 포함되지 않았어요.</span>' +
           "</div>";
 
         // 경고
@@ -1076,10 +1076,11 @@
               " 보너스 주가 오지 않으면 쟁여둔 소울은 2배를 받을 수 없어요. (전 시즌 소울은 파견은 되지만 보너스 대상이 아니에요)<br/>";
           }
         }
-        const weeklyCapacity = 7 * state.k * BATCH_MAX * state.slots;
+        const weeklyCycles = Math.floor(168 / GRADE_INFO[grade].hours) + 1;
+        const weeklyCapacity = state.slots * weeklyCycles * BATCH_MAX;
         if (maxSecureTotal > weeklyCapacity) {
           warnings +=
-            "⚠️ 현재 설정(슬롯 " + state.slots + "개 / 하루 " + state.k + "회)으로는 보너스 주 7일 동안 최대 " + weeklyCapacity.toLocaleString() +
+            "⚠️ 현재 설정(슬롯 " + state.slots + "개)으로는 보너스 주 7일 동안 최대 " + weeklyCapacity.toLocaleString() +
             "마리까지만 소진할 수 있어요. 상한 기준 예상 재고 " + Math.round(maxSecureTotal).toLocaleString() + "마리 중 " +
             Math.round(maxSecureTotal - weeklyCapacity).toLocaleString() + "마리는 넘칠 수 있어요.";
         }
