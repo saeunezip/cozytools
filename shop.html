@@ -471,13 +471,11 @@
 
       <div class="panel">
         <h3>상점 마감</h3>
-        <p class="desc">게임 상점 화면 상단 카운트다운 숫자를 그대로 입력하세요. 카운트다운이 끝나도 15일 동안은 이 상점에서 계속 살 수 있어서(다음 상점과 동시 운영), 그 유예까지 더해서 계산해요.</p>
-
-        <div id="deadlineInputArea"></div>
+        <p class="desc">카운트다운이 끝나도 14일 동안은 이 상점에서 계속 살 수 있어서(다음 상점과 동시 운영), 그 유예까지 더한 진짜 마감 기준이에요.</p>
         <div id="deadlineDeriveArea"></div>
       </div>
 
-      <div id="mainArea" style="display: none">
+      <div id="mainArea">
         <div class="panel">
           <h3>획득 조건</h3>
 
@@ -505,12 +503,19 @@
             </label>
           </div>
 
-          <div class="info-box" style="margin-top: 14px; margin-bottom: 0">
-            2x 요율(소울당 7코인)은 "SSR 보너스 2주 + SR 보너스 2주" 관측치예요 — (8+8+6+6)/4 = 7,
-            게임 오픈 이후 4개월간 이 패턴이 유지됐어요. 1x는 보너스를 안 노리므로 코인이 제일 높은 SSR만
-            재배한다고 가정해서 4코인이에요.<br /><br />
-            소울이 생기는 대로 바로 파견하는 기준이에요(쟁여두기 최적화 미반영). 매일 획득 상한을 다 채운다고
-            가정한 <b>이론 최대치</b>예요. 슬롯이 2개뿐이면 이보다 적게 나올 수 있어요.
+          <button class="accordion-head" onclick="toggleInfo()" style="margin-top: 6px">
+            <h3 style="font-size: 13.5px">이 계산, 어떻게 나온 거예요?</h3>
+            <span class="accordion-arrow" id="infoArrow">▾</span>
+          </button>
+          <div id="infoBody" class="accordion-body">
+            <div class="info-box" style="margin-top: 10px; margin-bottom: 0">
+              2x 요율(소울당 7코인)은 "SSR 보너스 2주 + SR 보너스 2주" 관측치예요 — (8+8+6+6)/4 = 7,
+              게임 오픈 이후 4개월간 이 패턴이 유지됐어요. 1x는 보너스를 안 노리므로 코인이 제일 높은 SSR만
+              재배한다고 가정해서 4코인이에요.<br /><br />
+              매일 획득 상한을 다 채운다고 가정한 <b>이론 최대치</b>예요.<br /><br />
+              소울이 생기는 대로 바로 파견하는 기준이에요(쟁여두기 최적화 미반영). 만약 8점인 SSR을 모아서
+              파견하는 방식을 사용하면 예상치보다 높게 나올 수 있어요.
+            </div>
           </div>
         </div>
 
@@ -596,6 +601,9 @@
       const ANCHOR_START = "2026-08-23"; // 처녀자리 시작 (일요일, /seasons id와 동일)
       const SEASON_DAYS = 28;
       const GRACE_DAYS = 14; // 카운트다운 종료 후 유예 (확정 — 새우님 관측)
+      // 이번 상점 마감. 상점이 바뀌면 이 두 값만 고치면 된다 (더는 사용자 입력 안 받음).
+      const COUNTDOWN_END_YMD = "2026-11-08"; // 게임 카운트다운 종료 (00:00 KST)
+      const DEADLINE_YMD = "2026-11-22"; // = COUNTDOWN_END_YMD + GRACE_DAYS(14일)
       const DAILY_CAP = { free: 12, pass: 30 };
       // 요율 확정치. 게임 오픈 이후 4개월간 유지된 패턴이라 편집 가능하게 두지 않는다.
       // 2x = "SSR 보너스 2주 + SR 보너스 2주" 평균: (8+8+6+6)/4 = 7
@@ -629,8 +637,8 @@
       /* ==========================================================
          상태
          ========================================================== */
-      let deadlineMs = Number(localStorage.getItem("shop_deadlineMs")) || null;
-      if (deadlineMs && deadlineMs <= Date.now()) deadlineMs = null;
+      const COUNTDOWN_END_MS = ymdToKSTInstant(COUNTDOWN_END_YMD, 0, 0).getTime();
+      const DEADLINE_MS = ymdToKSTInstant(DEADLINE_YMD, 0, 0).getTime();
 
       let state = {
         path: localStorage.getItem("shop_path") || "pass",
@@ -643,71 +651,24 @@
       let seasonNames = {}; // /seasons에서 불러온 { startYMD: name }, 로딩 전/실패 시 빈 객체
 
       /* ==========================================================
-         ② 마감 입력
+         ② 마감 표시 (더는 입력 안 받음 — COUNTDOWN_END_YMD/DEADLINE_YMD 고정값)
          ========================================================== */
-      function renderDeadlineInput() {
-        const box = document.getElementById("deadlineInputArea");
-        box.innerHTML =
-          '<div class="field-row">' +
-          '<div class="field"><label>남은 일수</label><input type="number" id="inDeadlineDays" inputmode="numeric" min="0" placeholder="예: 75" /></div>' +
-          '<div class="field"><label>남은 시간</label><input type="number" id="inDeadlineHours" inputmode="numeric" min="0" max="23" placeholder="예: 22" /></div>' +
-          "</div>" +
-          '<button class="btn" onclick="submitDeadline()">마감 계산하기</button>';
-      }
-
-      function submitDeadline() {
-        const days = Math.max(0, parseInt(document.getElementById("inDeadlineDays").value, 10) || 0);
-        const hours = Math.max(0, Math.min(23, parseInt(document.getElementById("inDeadlineHours").value, 10) || 0));
-        const now = Date.now();
-        const countdownEnd = now + days * 86400000 + hours * 3600000;
-        deadlineMs = countdownEnd + GRACE_DAYS * 86400000;
-        localStorage.setItem("shop_deadlineMs", deadlineMs);
-        renderDeadlineArea();
-        recalc();
-      }
-
-      function resetDeadline() {
-        deadlineMs = null;
-        localStorage.removeItem("shop_deadlineMs");
-        renderDeadlineArea();
-        recalc();
-      }
-
       function renderDeadlineArea() {
-        const inputArea = document.getElementById("deadlineInputArea");
         const deriveArea = document.getElementById("deadlineDeriveArea");
-        const mainArea = document.getElementById("mainArea");
-
-        if (!deadlineMs) {
-          inputArea.style.display = "";
-          renderDeadlineInput();
-          deriveArea.innerHTML = "";
-          mainArea.style.display = "none";
-          return;
-        }
-
-        inputArea.style.display = "none";
-        mainArea.style.display = "";
-
         const now = new Date();
-        const deadline = new Date(deadlineMs);
-        const countdownEnd = new Date(deadlineMs - GRACE_DAYS * 86400000);
 
-        if (deadline.getTime() <= now.getTime()) {
-          deriveArea.innerHTML =
-            '<div class="deadline-expired">이 상점은 마감됐어요. 새 카운트다운을 입력해 주세요.</div>' +
-            '<button class="btn-ghost" onclick="resetDeadline()">카운트다운 다시 입력</button>';
+        if (DEADLINE_MS <= now.getTime()) {
+          deriveArea.innerHTML = '<div class="deadline-expired">이 상점은 마감됐어요.</div>';
           return;
         }
 
         deriveArea.innerHTML =
           '<div class="deadline-derive">' +
-          '<div class="drow"><span>게임 카운트다운 종료</span><span>' + fmtKSTClock(countdownEnd) + "</span></div>" +
+          '<div class="drow"><span>게임 카운트다운 종료</span><span>' + fmtKSTClock(new Date(COUNTDOWN_END_MS)) + "</span></div>" +
           '<div class="drow"><span>유예 기간</span><span>+ ' + GRACE_DAYS + "일</span></div>" +
-          '<div class="drow total"><span>진짜 마감</span><span>' + fmtKSTClock(deadline) + " KST</span></div>" +
+          '<div class="drow total"><span>진짜 마감</span><span>' + fmtKSTClock(new Date(DEADLINE_MS)) + " KST</span></div>" +
           '<div class="drow total"><span></span><b id="cdDeadline"></b></div>' +
-          "</div>" +
-          '<button class="btn-ghost" onclick="resetDeadline()">카운트다운 다시 입력</button>';
+          "</div>";
       }
 
       /* ==========================================================
@@ -726,6 +687,12 @@
         document.getElementById("inCoins").value = state.coins;
         document.getElementById("inIncludeToday").checked = state.includeToday;
         document.getElementById("inFriendInclude").checked = state.friendInclude;
+      }
+
+      function toggleInfo() {
+        const body = document.getElementById("infoBody");
+        const open = body.classList.toggle("open");
+        document.getElementById("infoArrow").classList.toggle("open", open);
       }
 
       function setState(key, val) {
@@ -859,10 +826,9 @@
          ========================================================== */
       function recalc() {
         renderDeadlineArea();
-        if (!deadlineMs) return;
 
         const now = new Date();
-        const deadline = new Date(deadlineMs);
+        const deadline = new Date(DEADLINE_MS);
         if (deadline.getTime() <= now.getTime()) return;
 
         const dailyCap = DAILY_CAP[state.path];
@@ -955,9 +921,8 @@
          1초 카운트다운
          ========================================================== */
       function tickCountdown() {
-        if (!deadlineMs) return;
         const now = new Date();
-        const deadline = new Date(deadlineMs);
+        const deadline = new Date(DEADLINE_MS);
         const el = document.getElementById("cdDeadline");
         if (el) {
           if (deadline.getTime() <= now.getTime()) {
