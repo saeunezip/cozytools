@@ -1031,6 +1031,8 @@
           '보유 ' + state.stock.toLocaleString() + ' + 상한 기준 획득 ' + Math.round(baseDailyCap * D).toLocaleString() +
           (friendPart > 0 ? ' + 친구 획득 ' + Math.round(friendPart * D).toLocaleString() : '');
 
+        const carryoverCount = Math.max(0, Math.round(carryover));
+
         let html =
           '<div class="result-box">' +
           '<div class="result-title">이번 로테이션 종료까지 (' + fmtDuration(boundary.getTime() - now.getTime()) + ' 남음)</div>' +
@@ -1038,15 +1040,22 @@
           '<div class="result-row sub"><span>' + stockBreakdown + '</span></div>' +
           '<div class="result-row"><span>최대 파견 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(sim.dispatchedTotal).toLocaleString() + '마리</b></div>' +
           '<div class="result-row sub"><span>슬롯 가동률 ' + utilization.toFixed(0) + '% (재고가 무한해도 슬롯이 처리 가능한 최대치 대비)</span></div>' +
-          '<div class="result-row"><span>이월 재고</span><b>' + Math.max(0, Math.round(carryover)).toLocaleString() + '마리</b></div>' +
+          '<div class="result-row"><span>이월 재고</span><b>' + carryoverCount.toLocaleString() + '마리</b></div>';
+
+        if (carryoverCount > 0) {
+          const accelDia = accelDiamondCost(carryoverCount, grade);
+          const accelCoin = carryoverCount * GRADE_INFO[grade].coin * (bonusNow ? BONUS_MULT : 1);
+          html +=
+            '<div class="result-row sub"><span>└ 다이아로 즉시 가속 시' + (bonusNow ? " (지금 보너스로 받기)" : "") + '</span><b>' +
+            accelDia.toLocaleString() + '다이아 - ' + accelCoin.toLocaleString() + '코인</b></div>';
+        }
+
+        html +=
           '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' + Math.round(totalCoin).toLocaleString() + '코인</b></div>' +
           '<div class="result-row sub"><span>└ 보너스 적용</span><b>' + Math.round(sim.coinBonus).toLocaleString() + '</b></div>';
 
         if (sim.plainCount > 0) {
-          const accelDia = accelDiamondCost(sim.plainCount, grade);
-          html +=
-            '<div class="result-row sub"><span>└ 미적용 (다이아로 즉시 가속 시)</span><b>' +
-            accelDia.toLocaleString() + '다이아 - ' + Math.round(sim.coinPlain).toLocaleString() + '코인</b></div>';
+          html += '<div class="result-row sub"><span>└ 미적용</span><b>' + Math.round(sim.coinPlain).toLocaleString() + '</b></div>';
         }
 
         if (sim.coinBorderMin > 0 || sim.coinBorderMax > 0) {
