@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>스타소울 상점 계산기 · 더 코지 플로리스트</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="코지 도구 모음" />
+    <meta property="og:title" content="스타소울 상점 계산기" />
+    <meta property="og:description" content="더 코지 플로리스트 · 상점 종료까지 남은 코인으로 뭘 살 수 있는지 대략 계산해요" />
+    <meta property="og:url" content="https://cozytools.kro.kr/shop.html" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="스타소울 상점 계산기" />
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Malgun Gothic", sans-serif;
+        margin: 0;
+        padding: 16px 10px 40px;
+        background: #f7f7f8;
+        color: #263238;
+      }
+      .container {
+        max-width: 640px;
+        margin: auto;
+      }
+
+      .header-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .title {
+        color: #152c57;
+        margin: 0;
+        font-size: 21px;
+      }
+      .nav-btn {
+        background: #1f3b73;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-weight: bold;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .panel {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 14px;
+      }
+      .panel h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: #152c57;
+      }
+      .panel .desc {
+        font-size: 12.5px;
+        color: #90a4ae;
+        margin: 0 0 14px;
+        line-height: 1.6;
+      }
+
+      .info-box {
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 12.5px;
+        color: #6d5a1f;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+
+      .toggle-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .toggle-row button {
+        flex: 1;
+        padding: 10px;
+        border-radius: 9px;
+        border: 2px solid #eceff1;
+        background: #fbfbfc;
+        color: #546e7a;
+        font-weight: bold;
+        font-size: 13.5px;
+        cursor: pointer;
+      }
+      .toggle-row button.on {
+        border-color: #1f3b73;
+        background: #f3f6fc;
+        color: #1f3b73;
+      }
+
+      .field {
+        margin-bottom: 12px;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: bold;
+        color: #546e7a;
+        margin-bottom: 5px;
+      }
+      .field input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #dfe3e6;
+        border-radius: 9px;
+        font-size: 15px;
+        outline: none;
+      }
+      .field input:focus {
+        border-color: #1f3b73;
+      }
+      .field-note {
+        font-size: 11.5px;
+        color: #90a4ae;
+        margin-top: 4px;
+      }
+      .checkbox-field {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        cursor: pointer;
+        font-size: 13.5px;
+        color: #546e7a;
+        line-height: 1.5;
+      }
+      .checkbox-field input {
+        flex: none;
+        width: 18px;
+        height: 18px;
+        margin-top: 1px;
+        accent-color: #1f3b73;
+      }
+
+      .result-box {
+        background: #f3f6fc;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 4px;
+      }
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        padding: 5px 0;
+      }
+      .result-row.sub {
+        padding-left: 12px;
+        font-size: 12.5px;
+        color: #607085;
+      }
+      .result-row b {
+        color: #152c57;
+      }
+      .result-title {
+        font-size: 13.5px;
+        font-weight: bold;
+        color: #152c57;
+        margin-bottom: 6px;
+      }
+      .result-total {
+        border-top: 1px solid #dce3f0;
+        margin-top: 6px;
+        padding-top: 10px;
+      }
+
+      /* 상품 목록 */
+      .item-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .item-row {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 10px 11px;
+        border: 2px solid #eceff1;
+        border-radius: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .item-row.on {
+        border-color: #1f3b73;
+        background: #f3f6fc;
+      }
+      .item-row input {
+        flex: none;
+        width: 18px;
+        height: 18px;
+        accent-color: #1f3b73;
+      }
+      .item-row .iname {
+        flex: 1;
+        font-weight: bold;
+        font-size: 14px;
+        color: #152c57;
+      }
+      .item-row .iprice {
+        flex: none;
+        font-size: 13px;
+        font-weight: bold;
+        color: #546e7a;
+      }
+
+      .verdict-box {
+        border-radius: 12px;
+        padding: 13px 15px;
+        font-size: 13.5px;
+        line-height: 1.7;
+        margin-top: 14px;
+      }
+      .verdict-box.ok {
+        background: #e6f4ea;
+        color: #1e7d34;
+      }
+      .verdict-box.partial {
+        background: #fff3e0;
+        color: #7a4a10;
+      }
+      .verdict-box.no {
+        background: #ffebee;
+        color: #b71c1c;
+      }
+      .verdict-box b {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .footer-note {
+        text-align: center;
+        font-size: 12px;
+        color: #b0bec5;
+        margin-top: 24px;
+        line-height: 1.8;
+      }
+      .footer-note a {
+        color: #90a4ae;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-area">
+        <h2 class="title">스타소울 상점</h2>
+        <a href="index.html" class="nav-btn">도구 모음</a>
+      </div>
+
+      <div class="info-box">
+        정밀 계산이 아니라 "남은 일수 × 평균 하루 획득량"으로 대략 얼마나 코인이 모일지 어림잡는 계산기예요.
+        실제로는 접속 빈도·보너스 적중 여부에 따라 이보다 적을 수 있어요.
+      </div>
+
+      <div class="panel">
+        <h3>남은 기간 · 획득 가정</h3>
+        <p class="desc">스타소울 소환 시즌은 28일 주기예요. 남은 기간 동안 몇 번의 시즌을 겪는지 계산에 자동으로 반영돼요.</p>
+
+        <div class="field">
+          <label>상점 종료까지 남은 일수</label>
+          <input type="number" id="inDays" inputmode="numeric" min="0" placeholder="예: 75" />
+          <div class="field-note">상점 화면 상단 카운트다운의 일수를 그대로 입력하면 돼요</div>
+        </div>
+
+        <div class="field">
+          <label>계산 대상 등급</label>
+          <div class="toggle-row" id="gradeTabs"></div>
+        </div>
+
+        <div class="field">
+          <label>획득 경로</label>
+          <div class="toggle-row" id="pathTabs"></div>
+        </div>
+
+        <div class="field">
+          <label class="checkbox-field">
+            <input type="checkbox" id="inFriendInclude" />
+            <span>친구 소울 포함 (같은 소울 4개를 매일 추가 획득하는 가정)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>예상 코인</h3>
+        <div id="resultsArea"></div>
+      </div>
+
+      <div class="panel">
+        <h3>상품 선택</h3>
+        <p class="desc">사고 싶은 상품을 체크하면 합계가 예상 코인 범위 안에 들어오는지 알려줘요.</p>
+        <div class="item-list" id="itemList"></div>
+        <div id="verdictArea"></div>
+      </div>
+
+      <p class="footer-note">
+        더 코지 플로리스트 길드 &lt;백야&gt; 제작 ·
+        <a href="index.html">다른 도구 보기</a>
+      </p>
+    </div>
+
+    <script>
+      /* ==========================================================
+         상수
+         ========================================================== */
+      const GRADE_COIN = { SSR: 4, SR: 3, R: 2 };
+      const GRADES = ["SSR", "SR", "R"];
+      const BONUS_MULT = 2;
+      const DAILY_CAP = { free: 12, pass: 30 };
+      const FRIEND_MAX = 4;
+      const SEASON_DAYS = 28;
+
+      // 상점 아이템 — 전부 코인 가격 (2026-08 시점 화면 그대로 박아둠, 상점이 바뀌면 여기만 고치면 됨)
+      const SHOP_ITEMS = [
+        { name: "동화의 성", price: 9999 },
+        { name: "구름꿈 고래의 노래", price: 5999 },
+        { name: "행운의 올리브", price: 3999 },
+        { name: "크리스마스의 밤", price: 3999 },
+        { name: "가을빛 단풍", price: 3999 },
+        { name: "수정빛 얼음 꿈결", price: 999 },
+        { name: "푸른 서리 그림자", price: 1666 },
+        { name: "동화 왕국", price: 1666 },
+      ];
+
+      /* ==========================================================
+         상태
+         ========================================================== */
+      let state = {
+        days: Number(localStorage.getItem("shop_days")) || 0,
+        grade: localStorage.getItem("shop_grade") || "SSR",
+        path: localStorage.getItem("shop_path") || "free",
+        friendInclude: localStorage.getItem("shop_friendInclude") === "1",
+      };
+      let selected = JSON.parse(localStorage.getItem("shop_selected") || "[]");
+
+      /* ==========================================================
+         입력부 렌더
+         ========================================================== */
+      function buildTabs() {
+        document.getElementById("gradeTabs").innerHTML = GRADES.map(function (g) {
+          return '<button data-g="' + g + '" onclick="setState(\'grade\',\'' + g + '\')">' + g + "</button>";
+        }).join("");
+        document.getElementById("pathTabs").innerHTML =
+          '<button data-p="free" onclick="setState(\'path\',\'free\')">무료 상한 12/일</button>' +
+          '<button data-p="pass" onclick="setState(\'path\',\'pass\')">패스권 상한 30/일</button>';
+      }
+
+      function syncTabs() {
+        document.querySelectorAll("#gradeTabs button").forEach(function (b) {
+          b.classList.toggle("on", b.dataset.g === state.grade);
+        });
+        document.querySelectorAll("#pathTabs button").forEach(function (b) {
+          b.classList.toggle("on", b.dataset.p === state.path);
+        });
+        document.getElementById("inDays").value = state.days || "";
+        document.getElementById("inFriendInclude").checked = state.friendInclude;
+      }
+
+      function setState(key, val) {
+        state[key] = val;
+        localStorage.setItem("shop_" + key, val);
+        syncTabs();
+        recalc();
+      }
+
+      function wireInputs() {
+        document.getElementById("inDays").addEventListener("input", function (e) {
+          state.days = Math.max(0, parseInt(e.target.value, 10) || 0);
+          localStorage.setItem("shop_days", state.days);
+          recalc();
+        });
+        document.getElementById("inFriendInclude").addEventListener("change", function (e) {
+          state.friendInclude = e.target.checked;
+          localStorage.setItem("shop_friendInclude", state.friendInclude ? "1" : "0");
+          recalc();
+        });
+      }
+
+      /* ==========================================================
+         상품 목록
+         ========================================================== */
+      function buildItemList() {
+        const box = document.getElementById("itemList");
+        box.innerHTML = SHOP_ITEMS.map(function (item, i) {
+          const on = selected.indexOf(i) !== -1;
+          return (
+            '<label class="item-row' + (on ? " on" : "") + '">' +
+            '<input type="checkbox" onchange="toggleItem(' + i + ', this.checked)"' + (on ? " checked" : "") + " />" +
+            '<span class="iname">' + item.name + "</span>" +
+            '<span class="iprice">' + item.price.toLocaleString() + "코인</span>" +
+            "</label>"
+          );
+        }).join("");
+      }
+
+      function toggleItem(i, on) {
+        const idx = selected.indexOf(i);
+        if (on && idx === -1) selected.push(i);
+        if (!on && idx !== -1) selected.splice(idx, 1);
+        localStorage.setItem("shop_selected", JSON.stringify(selected));
+        document.querySelectorAll("#itemList .item-row").forEach(function (row, j) {
+          row.classList.toggle("on", selected.indexOf(j) !== -1);
+        });
+        recalc();
+      }
+
+      /* ==========================================================
+         계산 + 렌더
+         ========================================================== */
+      function recalc() {
+        const dailyCap = DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0);
+        const totalSouls = dailyCap * state.days;
+        const coinPerSoul = GRADE_COIN[state.grade];
+        const coinMin = totalSouls * coinPerSoul;
+        const coinMax = totalSouls * coinPerSoul * BONUS_MULT;
+        const seasons = state.days / SEASON_DAYS;
+
+        document.getElementById("resultsArea").innerHTML =
+          '<div class="result-box">' +
+          '<div class="result-row"><span>남은 시즌 수</span><b>' + seasons.toFixed(1) + '시즌 (28일 기준)</b></div>' +
+          '<div class="result-row"><span>하루 평균 획득</span><b>' + dailyCap.toLocaleString() + '마리</b></div>' +
+          '<div class="result-row"><span>예상 획득 소울</span><b>' + totalSouls.toLocaleString() + '마리</b></div>' +
+          '<div class="result-row result-total"><span>예상 코인</span><b>' + coinMin.toLocaleString() + ' ~ ' + coinMax.toLocaleString() + '코인</b></div>' +
+          '<div class="result-row sub"><span>최소 — 시즌 내내 전부 미적용(1배)로 보낸다고 가정</span></div>' +
+          '<div class="result-row sub"><span>최대 — 시즌 내내 전부 보너스(2배)로 보낸다고 가정</span></div>' +
+          "</div>";
+
+        renderVerdict(coinMin, coinMax);
+      }
+
+      function renderVerdict(coinMin, coinMax) {
+        const area = document.getElementById("verdictArea");
+        if (!selected.length) {
+          area.innerHTML = "";
+          return;
+        }
+        const total = selected.reduce(function (sum, i) {
+          return sum + SHOP_ITEMS[i].price;
+        }, 0);
+
+        let cls, msg;
+        if (total <= coinMin) {
+          cls = "ok";
+          msg = "선택한 상품 합계 <b>" + total.toLocaleString() + "코인</b> — 최소 예상치로도 살 수 있어요 (여유 " + (coinMin - total).toLocaleString() + "코인).";
+        } else if (total <= coinMax) {
+          cls = "partial";
+          msg = "선택한 상품 합계 <b>" + total.toLocaleString() + "코인</b> — 최소 예상치로는 부족하고(" + (total - coinMin).toLocaleString() + "코인 모자람), 보너스를 잘 맞추면(최대 기준) 살 수 있어요.";
+        } else {
+          cls = "no";
+          msg = "선택한 상품 합계 <b>" + total.toLocaleString() + "코인</b> — 최대 예상치로도 " + (total - coinMax).toLocaleString() + "코인 모자라요.";
+        }
+        area.innerHTML = '<div class="verdict-box ' + cls + '">' + msg + "</div>";
+      }
+
+      /* ==========================================================
+         시작
+         ========================================================== */
+      buildTabs();
+      syncTabs();
+      wireInputs();
+      buildItemList();
+      recalc();
+    </script>
+  </body>
+</html>
