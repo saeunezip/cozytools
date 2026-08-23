@@ -2,13 +2,19 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <title>스타소울 파견 계산기 · 더 코지 플로리스트</title>
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="코지 도구 모음" />
     <meta property="og:title" content="스타소울 파견 계산기" />
-    <meta property="og:description" content="더 코지 플로리스트 · 이번 주 보너스와 마감까지 남은 시간, 보유량으로 최대 파견 가능량을 계산해요" />
+    <meta
+      property="og:description"
+      content="더 코지 플로리스트 · 이번 주 보너스와 마감까지 남은 시간, 보유량으로 최대 파견 가능량 계산"
+    />
     <meta property="og:url" content="https://cozytools.kro.kr/starsoul.html" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="스타소울 파견 계산기" />
@@ -393,8 +399,9 @@
       </div>
 
       <div class="info-box">
-        이번 주 보너스와 마감 시각, 보유량으로 이번 로테이션 종료까지 <b>최대</b> 몇 마리를 파견해서 코인을 얼마나 벌 수 있는지 계산해요.
-        하루 12/30개는 <b>획득 상한</b>이라 결과는 전부 <b>이론 최대치</b>예요 — 실제로는 이보다 적을 수 있어요.
+        이번 주 보너스와 마감 시각, 보유량으로 이번 로테이션 종료까지
+        <b>최대</b> 몇 마리를 파견해서 코인을 얼마나 벌 수 있는지 계산해요. —
+        실제로는 이보다 적을 수 있어요.
       </div>
 
       <!-- ① 현재 보너스 카드 -->
@@ -405,7 +412,9 @@
       <!-- ③ 입력부 -->
       <div class="panel">
         <h3>내 보유량 입력</h3>
-        <p class="desc">짝꿍 꽃을 이 등급 한 종류로 집중해서 심고 있다고 가정합니다. 여러 등급을 섞어 심으면 독립 시행 편차가 커서 정확한 예측이 어려워요.</p>
+        <p class="desc">
+          짝꿍 꽃을 이 등급 한 종류로 집중해서 심고 있다고 가정합니다.
+        </p>
 
         <div class="field">
           <label>계산 대상 등급</label>
@@ -415,12 +424,23 @@
         <div class="field-row">
           <div class="field">
             <label>지금 보유 수량</label>
-            <input type="number" id="inStock" inputmode="numeric" min="0" value="0" />
+            <input
+              type="number"
+              id="inStock"
+              inputmode="numeric"
+              min="0"
+              value="0"
+            />
           </div>
           <div class="field">
-            <label>오늘 획득 상한이 얼마나 남았나요?</label>
-            <input type="number" id="inTodayCap" inputmode="numeric" min="0" value="0" />
-            <div class="field-note">"지급받았나"가 아니라 오늘 캡의 남은 양</div>
+            <label>오늘 획득 가능 수량</label>
+            <input
+              type="number"
+              id="inTodayCap"
+              inputmode="numeric"
+              min="0"
+              value="0"
+            />
           </div>
         </div>
 
@@ -437,7 +457,9 @@
         <div class="field">
           <label class="checkbox-field">
             <input type="checkbox" id="inFriendInclude" />
-            <span>친구 소울 포함 (같은 등급을 심은 친구에게서 매일 최대 <b id="friendMaxLabel">4</b>개 추가로 받는다고 가정)</span>
+            <span
+              >친구 소울 포함 (같은 소울 4개를 매일 추가 획득하는 가정)</span
+            >
           </label>
         </div>
       </div>
@@ -458,7 +480,10 @@
           <span class="accordion-arrow" id="tlArrow">▾</span>
         </button>
         <div id="timelineBody" class="accordion-body">
-          <p class="desc" style="margin: 10px 0 0">각 배치의 시작/완료 시각과 적용 배율이에요. 빈 파견 시점(투입할 재고가 없던 시점)은 표시하지 않아요.</p>
+          <p class="desc" style="margin: 10px 0 0">
+            각 배치의 시작/완료 시각과 적용 배율이에요. 빈 파견 시점(투입할
+            재고가 없던 시점)은 표시하지 않아요.
+          </p>
           <div id="timelineTable"></div>
         </div>
       </div>
@@ -500,14 +525,22 @@
       }
       function fromKSTFields(y, m1, d, h, min, sec) {
         // m1은 1-based 월. day/hour 오버플로는 Date.UTC가 알아서 다음 달/시로 넘겨준다.
-        return new Date(Date.UTC(y, m1 - 1, d, h || 0, min || 0, sec || 0) - KST_OFFSET_MS);
+        return new Date(
+          Date.UTC(y, m1 - 1, d, h || 0, min || 0, sec || 0) - KST_OFFSET_MS,
+        );
       }
       function pad2(n) {
         return String(n).padStart(2, "0");
       }
       function kstDateString(date) {
         const k = toKST(date);
-        return k.getUTCFullYear() + "-" + pad2(k.getUTCMonth() + 1) + "-" + pad2(k.getUTCDate());
+        return (
+          k.getUTCFullYear() +
+          "-" +
+          pad2(k.getUTCMonth() + 1) +
+          "-" +
+          pad2(k.getUTCDate())
+        );
       }
       function parseYMD(s) {
         const [y, m, d] = s.split("-").map(Number);
@@ -519,14 +552,29 @@
       }
       function nextMidnightKST(date) {
         const k = toKST(date);
-        return fromKSTFields(k.getUTCFullYear(), k.getUTCMonth() + 1, k.getUTCDate() + 1, 0, 0, 0);
+        return fromKSTFields(
+          k.getUTCFullYear(),
+          k.getUTCMonth() + 1,
+          k.getUTCDate() + 1,
+          0,
+          0,
+          0,
+        );
       }
       function nextRotationBoundary(now) {
         const k = toKST(now);
         const dow = k.getUTCDay(); // 0 = 일요일
         const daysToAdd = (7 - dow) % 7;
-        let boundary = fromKSTFields(k.getUTCFullYear(), k.getUTCMonth() + 1, k.getUTCDate() + daysToAdd, 0, 0, 0);
-        if (boundary.getTime() <= now.getTime()) boundary = new Date(boundary.getTime() + 7 * 86400000);
+        let boundary = fromKSTFields(
+          k.getUTCFullYear(),
+          k.getUTCMonth() + 1,
+          k.getUTCDate() + daysToAdd,
+          0,
+          0,
+          0,
+        );
+        if (boundary.getTime() <= now.getTime())
+          boundary = new Date(boundary.getTime() + 7 * 86400000);
         return boundary;
       }
       function daysUntilBoundaryMidnights(now, boundary) {
@@ -545,15 +593,24 @@
         const h = Math.floor((totalSec % 86400) / 3600);
         const m = Math.floor((totalSec % 3600) / 60);
         const s = totalSec % 60;
-        if (days > 0) return days + "일 " + pad2(h) + ":" + pad2(m) + ":" + pad2(s);
+        if (days > 0)
+          return days + "일 " + pad2(h) + ":" + pad2(m) + ":" + pad2(s);
         return pad2(h) + ":" + pad2(m) + ":" + pad2(s);
       }
       function fmtKSTClock(date) {
         const k = toKST(date);
         const WD = ["일", "월", "화", "수", "목", "금", "토"];
         return (
-          (k.getUTCMonth() + 1) + "/" + k.getUTCDate() + "(" + WD[k.getUTCDay()] + ") " +
-          pad2(k.getUTCHours()) + ":" + pad2(k.getUTCMinutes())
+          k.getUTCMonth() +
+          1 +
+          "/" +
+          k.getUTCDate() +
+          "(" +
+          WD[k.getUTCDay()] +
+          ") " +
+          pad2(k.getUTCHours()) +
+          ":" +
+          pad2(k.getUTCMinutes())
         );
       }
       function escapeHtml(s) {
@@ -643,11 +700,30 @@
 
       function renderSoulThumb(name) {
         const soul = SOUL_MAP[name];
-        if (!soul) return '<div class="soul-thumb"><span class="soul-badge grade-R">?</span><div class="soul-name">' + escapeHtml(name) + "</div></div>";
+        if (!soul)
+          return (
+            '<div class="soul-thumb"><span class="soul-badge grade-R">?</span><div class="soul-name">' +
+            escapeHtml(name) +
+            "</div></div>"
+          );
         const inner = soul.dorazyId
-          ? '<img src="https://dorazy.art/images/t/' + encodeURIComponent(soul.dorazyId) + '.webp" onerror="soulImgError(this,\'' + soul.grade + "')\" />"
-          : '<span class="soul-badge grade-' + soul.grade + '">' + soul.grade + "</span>";
-        return '<div class="soul-thumb">' + inner + '<div class="soul-name">' + escapeHtml(soul.name) + "</div></div>";
+          ? '<img src="https://dorazy.art/images/t/' +
+            encodeURIComponent(soul.dorazyId) +
+            '.webp" onerror="soulImgError(this,\'' +
+            soul.grade +
+            "')\" />"
+          : '<span class="soul-badge grade-' +
+            soul.grade +
+            '">' +
+            soul.grade +
+            "</span>";
+        return (
+          '<div class="soul-thumb">' +
+          inner +
+          '<div class="soul-name">' +
+          escapeHtml(soul.name) +
+          "</div></div>"
+        );
       }
 
       function fallbackKey(week) {
@@ -672,14 +748,24 @@
         const now = new Date();
         const boundary = nextRotationBoundary(now);
         const seasonEnd = ymdToKSTInstant(SEASON.start, 0, 0);
-        const seasonEndTs = new Date(seasonEnd.getTime() + SEASON.weeks * 7 * 86400000);
+        const seasonEndTs = new Date(
+          seasonEnd.getTime() + SEASON.weeks * 7 * 86400000,
+        );
         CUR_WEEK = currentWeekOf(SEASON, now);
         const bonusNames = getBonusForWeek(CUR_WEEK);
 
-        let html = '<div class="bc-top"><h3>이번 주 보너스</h3><span class="bc-week">시즌 ' + CUR_WEEK + "주차 / " + SEASON.weeks + "</span></div>";
+        let html =
+          '<div class="bc-top"><h3>이번 주 보너스</h3><span class="bc-week">시즌 ' +
+          CUR_WEEK +
+          "주차 / " +
+          SEASON.weeks +
+          "</span></div>";
 
         if (bonusNames) {
-          html += '<div class="soul-row">' + bonusNames.map(renderSoulThumb).join("") + "</div>";
+          html +=
+            '<div class="soul-row">' +
+            bonusNames.map(renderSoulThumb).join("") +
+            "</div>";
         } else {
           html +=
             '<div class="empty-msg" style="color:#d7ddec; padding:8px 0;">이번 주 보너스가 아직 등록되지 않았어요. 아래에서 3종을 직접 골라주세요.</div>' +
@@ -709,8 +795,13 @@
             .map(function (s) {
               return (
                 '<label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);padding:6px 9px;border-radius:8px;font-size:12px;cursor:pointer;">' +
-                '<input type="checkbox" value="' + escapeHtml(s.name) + '" onchange="onFallbackToggle(this)" />' +
-                escapeHtml(s.name) + " (" + s.grade + ")" +
+                '<input type="checkbox" value="' +
+                escapeHtml(s.name) +
+                '" onchange="onFallbackToggle(this)" />' +
+                escapeHtml(s.name) +
+                " (" +
+                s.grade +
+                ")" +
                 "</label>"
               );
             })
@@ -720,10 +811,13 @@
       }
 
       function onFallbackToggle(checkbox) {
-        const checked = Array.from(document.querySelectorAll("#fallbackBox input:checked"));
+        const checked = Array.from(
+          document.querySelectorAll("#fallbackBox input:checked"),
+        );
         if (checked.length > 3) {
           checkbox.checked = false;
-          document.getElementById("fallbackMsg").textContent = "3종만 선택할 수 있어요.";
+          document.getElementById("fallbackMsg").textContent =
+            "3종만 선택할 수 있어요.";
           return;
         }
         if (checked.length === 3) {
@@ -731,7 +825,8 @@
             return el.value;
           });
           localStorage.setItem(fallbackKey(CUR_WEEK), JSON.stringify(names));
-          document.getElementById("fallbackMsg").textContent = "선택 완료! (다음 로테이션까지 유지돼요)";
+          document.getElementById("fallbackMsg").textContent =
+            "선택 완료! (다음 로테이션까지 유지돼요)";
           renderBonusCard();
           recalcAll();
         } else {
@@ -741,7 +836,9 @@
 
       function currentWeekOf(season, now) {
         const start = ymdToKSTInstant(season.start, 0, 0);
-        const diffDays = Math.floor((now.getTime() - start.getTime()) / 86400000);
+        const diffDays = Math.floor(
+          (now.getTime() - start.getTime()) / 86400000,
+        );
         let week = Math.floor(diffDays / 7) + 1;
         if (week < 1) week = 1;
         if (week > season.weeks) week = season.weeks;
@@ -761,15 +858,35 @@
          입력부 렌더 (탭들)
          ========================================================== */
       function buildTabs() {
-        document.getElementById("gradeTabs").innerHTML = GRADES.map(function (g) {
-          return '<button data-g="' + g + '" onclick="setState(\'grade\',\'' + g + '\')">' + g + "</button>";
-        }).join("");
+        document.getElementById("gradeTabs").innerHTML = GRADES.map(
+          function (g) {
+            return (
+              '<button data-g="' +
+              g +
+              "\" onclick=\"setState('grade','" +
+              g +
+              "')\">" +
+              g +
+              "</button>"
+            );
+          },
+        ).join("");
         document.getElementById("pathTabs").innerHTML =
-          '<button data-p="free" onclick="setState(\'path\',\'free\')">무료 상한 12/일</button>' +
-          '<button data-p="pass" onclick="setState(\'path\',\'pass\')">패스권 상한 30/일</button>';
-        document.getElementById("slotTabs").innerHTML = SLOT_OPTIONS.map(function (n) {
-          return '<button data-s="' + n + '" onclick="setState(\'slots\',' + n + ')">' + n + "</button>";
-        }).join("");
+          "<button data-p=\"free\" onclick=\"setState('path','free')\">무료 상한 12/일</button>" +
+          "<button data-p=\"pass\" onclick=\"setState('path','pass')\">패스권 상한 30/일</button>";
+        document.getElementById("slotTabs").innerHTML = SLOT_OPTIONS.map(
+          function (n) {
+            return (
+              '<button data-s="' +
+              n +
+              "\" onclick=\"setState('slots'," +
+              n +
+              ')">' +
+              n +
+              "</button>"
+            );
+          },
+        ).join("");
       }
 
       function syncTabs() {
@@ -783,8 +900,8 @@
           b.classList.toggle("on", Number(b.dataset.s) === state.slots);
         });
         document.getElementById("inStock").value = state.stock;
-        document.getElementById("inFriendInclude").checked = state.friendInclude;
-        document.getElementById("friendMaxLabel").textContent = FRIEND_MAX;
+        document.getElementById("inFriendInclude").checked =
+          state.friendInclude;
       }
 
       function setState(key, val) {
@@ -796,23 +913,42 @@
       }
 
       function wireInputs() {
-        document.getElementById("inStock").addEventListener("input", function (e) {
-          state.stock = Math.max(0, Math.min(999999, parseInt(e.target.value, 10) || 0));
-          localStorage.setItem("starsoul_stock", state.stock);
-          recalcAll();
-        });
-        document.getElementById("inTodayCap").addEventListener("input", function (e) {
-          const cap = DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0);
-          const v = Math.max(0, Math.min(cap, parseInt(e.target.value, 10) || 0));
-          localStorage.setItem("starsoul_todayCap", v);
-          localStorage.setItem("starsoul_todayCapDate", kstDateString(new Date()));
-          recalcAll();
-        });
-        document.getElementById("inFriendInclude").addEventListener("change", function (e) {
-          state.friendInclude = e.target.checked;
-          localStorage.setItem("starsoul_friendInclude", state.friendInclude ? "1" : "0");
-          recalcAll();
-        });
+        document
+          .getElementById("inStock")
+          .addEventListener("input", function (e) {
+            state.stock = Math.max(
+              0,
+              Math.min(999999, parseInt(e.target.value, 10) || 0),
+            );
+            localStorage.setItem("starsoul_stock", state.stock);
+            recalcAll();
+          });
+        document
+          .getElementById("inTodayCap")
+          .addEventListener("input", function (e) {
+            const cap =
+              DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0);
+            const v = Math.max(
+              0,
+              Math.min(cap, parseInt(e.target.value, 10) || 0),
+            );
+            localStorage.setItem("starsoul_todayCap", v);
+            localStorage.setItem(
+              "starsoul_todayCapDate",
+              kstDateString(new Date()),
+            );
+            recalcAll();
+          });
+        document
+          .getElementById("inFriendInclude")
+          .addEventListener("change", function (e) {
+            state.friendInclude = e.target.checked;
+            localStorage.setItem(
+              "starsoul_friendInclude",
+              state.friendInclude ? "1" : "0",
+            );
+            recalcAll();
+          });
       }
 
       function getTodayCap(cap) {
@@ -823,7 +959,10 @@
           localStorage.setItem("starsoul_todayCap", 0);
           return 0;
         }
-        return Math.max(0, Math.min(cap, Number(localStorage.getItem("starsoul_todayCap")) || 0));
+        return Math.max(
+          0,
+          Math.min(cap, Number(localStorage.getItem("starsoul_todayCap")) || 0),
+        );
       }
 
       function toggleTimeline() {
@@ -839,7 +978,17 @@
          배치 분할은 최적화하지 않는다 (핵심 결과 2번: 어떻게 쪼개도 코인 총량은 같음).
          ========================================================== */
       function simulate(opts) {
-        const { grade, N0, dailyCap, todayCapRemaining, s, now, boundary, bonusNow, gradeAlreadyUsed } = opts;
+        const {
+          grade,
+          N0,
+          dailyCap,
+          todayCapRemaining,
+          s,
+          now,
+          boundary,
+          bonusNow,
+          gradeAlreadyUsed,
+        } = opts;
         const info = GRADE_INFO[grade];
         const nowMs = now.getTime(),
           boundaryMs = boundary.getTime();
@@ -884,7 +1033,12 @@
             coinBorderMax += count * info.coin * BONUS_MULT;
             mult = "경계 넘김";
           }
-          timeline.push({ t: new Date(startMs), count, completeAt: new Date(completeMs), mult });
+          timeline.push({
+            t: new Date(startMs),
+            count,
+            completeAt: new Date(completeMs),
+            mult,
+          });
         }
 
         // 비어있는 슬롯 여러 개에 재고를 몰아넣지 않고 최대한 균등하게 나눠서 완료 시각을
@@ -910,7 +1064,10 @@
           }
           if (perSlotCap <= 0) return;
 
-          const totalToPlace = Math.min(stockQueue, freeIdxs.length * perSlotCap);
+          const totalToPlace = Math.min(
+            stockQueue,
+            freeIdxs.length * perSlotCap,
+          );
           const base = Math.floor(totalToPlace / freeIdxs.length);
           let extra = totalToPlace % freeIdxs.length;
 
@@ -946,7 +1103,8 @@
           const before = slotFreeAt.slice();
           tryFillAt(t);
           for (let i = 0; i < s; i++) {
-            if (slotFreeAt[i] !== before[i] && slotFreeAt[i] < boundaryMs) eventTimes.push(slotFreeAt[i]);
+            if (slotFreeAt[i] !== before[i] && slotFreeAt[i] < boundaryMs)
+              eventTimes.push(slotFreeAt[i]);
           }
         }
 
@@ -975,7 +1133,12 @@
         if (!SEASON) return false;
         for (let week = 1; week <= SEASON.weeks; week++) {
           const names = getBonusForWeek(week);
-          if (names && names.some(function (n) { return SOUL_MAP[n] && SOUL_MAP[n].grade === grade; })) {
+          if (
+            names &&
+            names.some(function (n) {
+              return SOUL_MAP[n] && SOUL_MAP[n].grade === grade;
+            })
+          ) {
             return true;
           }
         }
@@ -1009,7 +1172,8 @@
         const dailyCap = baseDailyCap + friendPart;
         const todayCapRemaining = getTodayCap(dailyCap);
         document.getElementById("inTodayCap").max = dailyCap;
-        if (Number(document.getElementById("inTodayCap").value) > dailyCap) document.getElementById("inTodayCap").value = dailyCap;
+        if (Number(document.getElementById("inTodayCap").value) > dailyCap)
+          document.getElementById("inTodayCap").value = dailyCap;
         document.getElementById("inTodayCap").value = todayCapRemaining;
 
         const bonusNow = isBonusGrade(grade);
@@ -1018,64 +1182,118 @@
         const maxSecureTotal = state.stock + todayCapRemaining + dailyCap * D;
 
         const sim = simulate({
-          grade, N0: state.stock, dailyCap, todayCapRemaining,
-          s: state.slots, now, boundary, bonusNow, gradeAlreadyUsed,
+          grade,
+          N0: state.stock,
+          dailyCap,
+          todayCapRemaining,
+          s: state.slots,
+          now,
+          boundary,
+          bonusNow,
+          gradeAlreadyUsed,
         });
 
         const capacity = maxSlotCapacity(grade, state.slots, now, boundary);
-        const utilization = capacity > 0 ? (sim.dispatchedTotal / capacity) * 100 : 0;
+        const utilization =
+          capacity > 0 ? (sim.dispatchedTotal / capacity) * 100 : 0;
         const carryover = maxSecureTotal - sim.dispatchedTotal;
         const totalCoin = sim.coinBonus + sim.coinPlain;
 
         const stockBreakdown =
-          '보유 ' + state.stock.toLocaleString() + ' + 상한 기준 획득 ' + Math.round(baseDailyCap * D).toLocaleString() +
-          (friendPart > 0 ? ' + 친구 획득 ' + Math.round(friendPart * D).toLocaleString() : '');
+          "보유 " +
+          state.stock.toLocaleString() +
+          " + 상한 기준 획득 " +
+          Math.round(baseDailyCap * D).toLocaleString() +
+          (friendPart > 0
+            ? " + 친구 획득 " + Math.round(friendPart * D).toLocaleString()
+            : "");
 
         const carryoverCount = Math.max(0, Math.round(carryover));
 
         let html =
           '<div class="result-box">' +
-          '<div class="result-title">이번 로테이션 종료까지 (' + fmtDuration(boundary.getTime() - now.getTime()) + ' 남음)</div>' +
-          '<div class="result-row"><span>최대 확보 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(maxSecureTotal).toLocaleString() + '마리</b></div>' +
-          '<div class="result-row sub"><span>' + stockBreakdown + '</span></div>' +
-          '<div class="result-row"><span>최대 파견 가능<span class="result-max-tag">최대</span></span><b>' + Math.round(sim.dispatchedTotal).toLocaleString() + '마리</b></div>' +
-          '<div class="result-row sub"><span>슬롯 가동률 ' + utilization.toFixed(0) + '% (재고가 무한해도 슬롯이 처리 가능한 최대치 대비)</span></div>' +
-          '<div class="result-row"><span>이월 재고</span><b>' + carryoverCount.toLocaleString() + '마리</b></div>';
+          '<div class="result-title">이번 로테이션 종료까지 (' +
+          fmtDuration(boundary.getTime() - now.getTime()) +
+          " 남음)</div>" +
+          '<div class="result-row"><span>최대 확보 가능<span class="result-max-tag">최대</span></span><b>' +
+          Math.round(maxSecureTotal).toLocaleString() +
+          "마리</b></div>" +
+          '<div class="result-row sub"><span>' +
+          stockBreakdown +
+          "</span></div>" +
+          '<div class="result-row"><span>최대 파견 가능<span class="result-max-tag">최대</span></span><b>' +
+          Math.round(sim.dispatchedTotal).toLocaleString() +
+          "마리</b></div>" +
+          '<div class="result-row sub"><span>슬롯 가동률 ' +
+          utilization.toFixed(0) +
+          "% (재고가 무한해도 슬롯이 처리 가능한 최대치 대비)</span></div>" +
+          '<div class="result-row"><span>이월 재고</span><b>' +
+          carryoverCount.toLocaleString() +
+          "마리</b></div>";
 
         if (carryoverCount > 0) {
           const accelDia = accelDiamondCost(carryoverCount, grade);
-          const accelCoin = carryoverCount * GRADE_INFO[grade].coin * (bonusNow ? BONUS_MULT : 1);
+          const accelCoin =
+            carryoverCount *
+            GRADE_INFO[grade].coin *
+            (bonusNow ? BONUS_MULT : 1);
           html +=
-            '<div class="result-row sub"><span>└ 다이아로 즉시 가속 시' + (bonusNow ? " (지금 보너스로 받기)" : "") + '</span><b>' +
-            accelDia.toLocaleString() + '다이아 - ' + accelCoin.toLocaleString() + '코인</b></div>';
+            '<div class="result-row sub"><span>└ 다이아로 즉시 가속 시' +
+            (bonusNow ? " (지금 보너스로 받기)" : "") +
+            "</span><b>" +
+            accelDia.toLocaleString() +
+            "다이아 - " +
+            accelCoin.toLocaleString() +
+            "코인</b></div>";
         }
 
         html +=
-          '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' + Math.round(totalCoin).toLocaleString() + '코인</b></div>' +
-          '<div class="result-row sub"><span>└ 보너스 적용</span><b>' + Math.round(sim.coinBonus).toLocaleString() + '</b></div>';
+          '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' +
+          Math.round(totalCoin).toLocaleString() +
+          "코인</b></div>" +
+          '<div class="result-row sub"><span>└ 보너스 적용</span><b>' +
+          Math.round(sim.coinBonus).toLocaleString() +
+          "</b></div>";
 
         if (sim.plainCount > 0) {
-          html += '<div class="result-row sub"><span>└ 미적용</span><b>' + Math.round(sim.coinPlain).toLocaleString() + '</b></div>';
+          html +=
+            '<div class="result-row sub"><span>└ 미적용</span><b>' +
+            Math.round(sim.coinPlain).toLocaleString() +
+            "</b></div>";
         }
 
         if (sim.coinBorderMin > 0 || sim.coinBorderMax > 0) {
           html +=
             '<div class="result-row sub"><span>└ 경계 넘김 (다음 주 보너스 여부에 따라)</span><b>' +
-            Math.round(sim.coinBorderMin).toLocaleString() + ' ~ ' + Math.round(sim.coinBorderMax).toLocaleString() + '</b></div>';
+            Math.round(sim.coinBorderMin).toLocaleString() +
+            " ~ " +
+            Math.round(sim.coinBorderMax).toLocaleString() +
+            "</b></div>";
         }
         html += "</div>";
 
         // 경고
         let warnings = "";
-        const weeklyCycles = Math.floor(168 / (GRADE_INFO[grade].hours * BATCH_MAX)) + 1;
+        const weeklyCycles =
+          Math.floor(168 / (GRADE_INFO[grade].hours * BATCH_MAX)) + 1;
         const weeklyCapacity = state.slots * weeklyCycles * BATCH_MAX;
         if (maxSecureTotal > weeklyCapacity) {
           warnings +=
-            "⚠️ 현재 설정(슬롯 " + state.slots + "개)으로는 보너스 주 7일 동안 최대 " + weeklyCapacity.toLocaleString() +
-            "마리까지만 소진할 수 있어요. 상한 기준 예상 재고 " + Math.round(maxSecureTotal).toLocaleString() + "마리 중 " +
-            Math.round(maxSecureTotal - weeklyCapacity).toLocaleString() + "마리는 넘칠 수 있어요.";
+            "⚠️ 현재 설정(슬롯 " +
+            state.slots +
+            "개)으로는 보너스 주 7일 동안 최대 " +
+            weeklyCapacity.toLocaleString() +
+            "마리까지만 소진할 수 있어요. 상한 기준 예상 재고 " +
+            Math.round(maxSecureTotal).toLocaleString() +
+            "마리 중 " +
+            Math.round(maxSecureTotal - weeklyCapacity).toLocaleString() +
+            "마리는 넘칠 수 있어요.";
         }
-        if (warnings) html += '<div class="info-box" style="margin-top:12px; margin-bottom:0;">' + warnings + "</div>";
+        if (warnings)
+          html +=
+            '<div class="info-box" style="margin-top:12px; margin-bottom:0;">' +
+            warnings +
+            "</div>";
 
         document.getElementById("resultsArea").innerHTML = html;
 
@@ -1094,12 +1312,20 @@
         const planB = maxSecureTotal * coin * BONUS_MULT;
         area.innerHTML =
           '<div class="panel">' +
-          '<h3>스톡 전략 비교</h3>' +
-          '<p class="desc">이번 주는 ' + grade + ' 보너스가 아니에요. "만약 다음에 보너스가 오면"을 가정한 조건부 비교예요 — 다음 주 보너스는 게임이 미리 보여주지 않아서 실제로 올지는 알 수 없어요.</p>' +
+          "<h3>스톡 전략 비교</h3>" +
+          '<p class="desc">이번 주는 ' +
+          grade +
+          ' 보너스가 아니에요. "만약 다음에 보너스가 오면"을 가정한 조건부 비교예요 — 다음 주 보너스는 게임이 미리 보여주지 않아서 실제로 올지는 알 수 없어요.</p>' +
           '<div class="result-box">' +
-          '<div class="result-row"><span>A안 — 지금 다 파견</span><b>' + Math.round(planA).toLocaleString() + '코인</b></div>' +
-          '<div class="result-row"><span>B안 — 다음 보너스 주까지 쟁여두기</span><b>' + Math.round(planB).toLocaleString() + '코인</b></div>' +
-          '<div class="result-row result-total"><span>차이 (B안이 보너스일 경우)</span><b>+' + Math.round(planB - planA).toLocaleString() + '코인</b></div>' +
+          '<div class="result-row"><span>A안 — 지금 다 파견</span><b>' +
+          Math.round(planA).toLocaleString() +
+          "코인</b></div>" +
+          '<div class="result-row"><span>B안 — 다음 보너스 주까지 쟁여두기</span><b>' +
+          Math.round(planB).toLocaleString() +
+          "코인</b></div>" +
+          '<div class="result-row result-total"><span>차이 (B안이 보너스일 경우)</span><b>+' +
+          Math.round(planB - planA).toLocaleString() +
+          "코인</b></div>" +
           "</div></div>";
       }
 
@@ -1109,10 +1335,18 @@
         const groups = [];
         const index = {};
         timeline.forEach(function (row) {
-          const key = row.t.getTime() + "|" + row.completeAt.getTime() + "|" + row.mult;
+          const key =
+            row.t.getTime() + "|" + row.completeAt.getTime() + "|" + row.mult;
           if (!(key in index)) {
             index[key] = groups.length;
-            groups.push({ t: row.t, completeAt: row.completeAt, mult: row.mult, totalCount: 0, slots: 0, perSlot: [] });
+            groups.push({
+              t: row.t,
+              completeAt: row.completeAt,
+              mult: row.mult,
+              totalCount: 0,
+              slots: 0,
+              perSlot: [],
+            });
           }
           const g = groups[index[key]];
           g.totalCount += row.count;
@@ -1125,7 +1359,8 @@
       function renderTimeline(timeline) {
         const box = document.getElementById("timelineTable");
         if (!timeline.length) {
-          box.innerHTML = '<div class="empty-msg">표시할 파견 내역이 없어요.</div>';
+          box.innerHTML =
+            '<div class="empty-msg">표시할 파견 내역이 없어요.</div>';
           return;
         }
         const groups = mergeTimelineRows(timeline);
@@ -1135,11 +1370,23 @@
             .map(function (g) {
               const marriLabel =
                 g.slots > 1
-                  ? g.totalCount + " (" + g.perSlot.join("+") + " × " + g.slots + "슬롯)"
+                  ? g.totalCount +
+                    " (" +
+                    g.perSlot.join("+") +
+                    " × " +
+                    g.slots +
+                    "슬롯)"
                   : String(g.totalCount);
               return (
-                "<tr><td>" + fmtKSTClock(g.t) + "</td><td>" + fmtKSTClock(g.completeAt) + "</td><td>" +
-                marriLabel + "</td><td>" + g.mult + "</td></tr>"
+                "<tr><td>" +
+                fmtKSTClock(g.t) +
+                "</td><td>" +
+                fmtKSTClock(g.completeAt) +
+                "</td><td>" +
+                marriLabel +
+                "</td><td>" +
+                g.mult +
+                "</td></tr>"
               );
             })
             .join("") +
@@ -1154,13 +1401,17 @@
         const boundary = window.__boundary;
         if (boundary) {
           const el = document.getElementById("cdRotation");
-          if (el) el.textContent = fmtDuration(boundary.getTime() - now.getTime());
+          if (el)
+            el.textContent = fmtDuration(boundary.getTime() - now.getTime());
           if (boundary.getTime() <= now.getTime()) recalcAll();
         }
         const seasonEndTs = window.__seasonEndTs;
         if (seasonEndTs) {
           const el2 = document.getElementById("cdSeason");
-          if (el2) el2.textContent = fmtDuration(seasonEndTs.getTime() - now.getTime());
+          if (el2)
+            el2.textContent = fmtDuration(
+              seasonEndTs.getTime() - now.getTime(),
+            );
         }
       }
 
@@ -1170,7 +1421,9 @@
       buildTabs();
       syncTabs();
       wireInputs();
-      document.getElementById("inTodayCap").value = getTodayCap(DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0));
+      document.getElementById("inTodayCap").value = getTodayCap(
+        DAILY_CAP[state.path] + (state.friendInclude ? FRIEND_MAX : 0),
+      );
       loadSeasons();
       setInterval(tickCountdowns, 1000);
     </script>
