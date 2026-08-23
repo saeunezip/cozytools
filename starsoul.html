@@ -400,7 +400,7 @@
 
       <div class="info-box">
         이번 주 보너스와 마감 시각, 보유량으로 이번 로테이션 종료까지
-        <b>최대</b> 몇 마리를 파견해서 코인을 얼마나 벌 수 있는지 계산해요. —
+        <b>최대</b> 몇 마리를 파견해서 코인을 얼마나 벌 수 있는지 계산해요 —
         실제로는 이보다 적을 수 있어요.
       </div>
 
@@ -1226,7 +1226,7 @@
           "마리</b></div>" +
           '<div class="result-row sub"><span>슬롯 가동률 ' +
           utilization.toFixed(0) +
-          "% (재고가 무한해도 슬롯이 처리 가능한 최대치 대비)</span></div>" +
+          "%</span></div>" +
           '<div class="result-row"><span>이월 재고</span><b>' +
           carryoverCount.toLocaleString() +
           "마리</b></div>";
@@ -1238,9 +1238,7 @@
             GRADE_INFO[grade].coin *
             (bonusNow ? BONUS_MULT : 1);
           html +=
-            '<div class="result-row sub"><span>└ 다이아로 즉시 가속 시' +
-            (bonusNow ? " (지금 보너스로 받기)" : "") +
-            "</span><b>" +
+            '<div class="result-row sub"><span>└ 다이아로 즉시 가속 시</span><b>' +
             accelDia.toLocaleString() +
             "다이아 - " +
             accelCoin.toLocaleString() +
@@ -1372,8 +1370,8 @@
                 g.slots > 1
                   ? g.totalCount +
                     " (" +
-                    g.perSlot.join("+") +
-                    " × " +
+                    g.perSlot[0] +
+                    "×" +
                     g.slots +
                     "슬롯)"
                   : String(g.totalCount);
