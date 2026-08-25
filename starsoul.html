@@ -132,8 +132,13 @@
       .soul-row {
         display: flex;
         gap: 10px;
-        margin-bottom: 14px;
+        margin-bottom: 6px;
         flex-wrap: wrap;
+      }
+      .soul-credit {
+        font-size: 11px;
+        color: #8b98b8;
+        margin-bottom: 14px;
       }
       .soul-thumb {
         flex: 1;
@@ -765,7 +770,8 @@
           html +=
             '<div class="soul-row">' +
             bonusNames.map(renderSoulThumb).join("") +
-            "</div>";
+            "</div>" +
+            '<div class="soul-credit">이미지 출처 - dorazy.art</div>';
         } else {
           html +=
             '<div class="empty-msg" style="color:#d7ddec; padding:8px 0;">이번 주 보너스가 아직 등록되지 않았어요. 아래에서 3종을 직접 골라주세요.</div>' +
