@@ -466,10 +466,12 @@
           <label>계산 범위</label>
           <div class="toggle-row" id="horizonTabs"></div>
           <p class="field-note">
-            SR·R은 매주 보너스에 포함되니 다음 주도 확정 보너스로 계산해요.
-            SSR은 이번 시즌 몫(소울 수만큼)을 이미 다 썼으면 다음 주는 확정
-            미적용, 아직 남았으면 "다음 주에 SSR 보너스가 온다"고 가정하고
-            계산해요 — 실제로는 아닐 수 있어요.
+            스톡 전략 계산이에요 — 이번 주엔 파견하지 않고 재고만 쌓아두고,
+            다음 주부터 몰아서 보낸다고 가정해요. SR·R은 매주 보너스에
+            포함되니 다음 주도 확정 보너스로 계산해요. SSR은 이번 시즌
+            몫(소울 수만큼)을 이미 다 썼으면 다음 주는 확정 미적용, 아직
+            남았으면 "다음 주에 SSR 보너스가 온다"고 가정하고 계산해요 —
+            실제로는 아닐 수 있어요.
           </p>
         </div>
 
@@ -630,6 +632,17 @@
           pad2(k.getUTCHours()) +
           ":" +
           pad2(k.getUTCMinutes())
+        );
+      }
+      // "26.09.06" 형식 — 파견 기간처럼 날짜 범위를 짧게 보여줄 때 쓴다.
+      function fmtYMD(date) {
+        const k = toKST(date);
+        return (
+          String(k.getUTCFullYear()).slice(2) +
+          "." +
+          pad2(k.getUTCMonth() + 1) +
+          "." +
+          pad2(k.getUTCDate())
         );
       }
       function escapeHtml(s) {
@@ -1014,10 +1027,15 @@
           now,
           boundary,
           optimisticSSR,
+          dispatchStartMs,
         } = opts;
         const info = GRADE_INFO[grade];
         const nowMs = now.getTime(),
           boundaryMs = boundary.getTime();
+        // 스톡 전략 모드(다음 주까지 계산)에서는 이번 주엔 파견을 아예 안 하고 재고만
+        // 쌓아뒀다가 다음 주 시작 시각부터 몰아서 보낸다고 가정한다 — 도착(적립)은
+        // 그대로 계속되고, 슬롯 채우기(tryFillAt)만 이 시각 이전엔 건너뛴다.
+        const dispatchStart = dispatchStartMs || nowMs;
 
         // 도착 이벤트: 지금(보유+오늘 남은 캡) + 남은 자정마다(일일 상한)
         const arrivals = [{ t: nowMs, amount: N0 + todayCapRemaining }];
@@ -1074,6 +1092,7 @@
         // → 경계 전에 확실히 끝나는 한도 내에서만 채우고, 그 한도가 0이면 이번 라운드는
         // 건너뛴다(그 몫은 이월 재고로 남는다).
         function tryFillAt(t) {
+          if (t < dispatchStart) return;
           const freeIdxs = [];
           for (let i = 0; i < s; i++) if (slotFreeAt[i] <= t) freeIdxs.push(i);
           if (!freeIdxs.length || stockQueue <= 0) return;
@@ -1260,6 +1279,10 @@
 
         const maxSecureTotal = state.stock + todayCapRemaining + dailyCap * D;
 
+        // 다음 주까지(2주) 계산은 스톡 전략 전용이다 — 이번 주엔 재고만 쌓고,
+        // 파견은 다음 주(boundary1)부터 몰아서 시작한다고 가정한다.
+        const dispatchStartDate = state.horizon === 2 ? boundary1 : now;
+
         const sim = simulate({
           grade,
           N0: state.stock,
@@ -1269,9 +1292,15 @@
           now,
           boundary: simEnd,
           optimisticSSR: state.horizon === 2,
+          dispatchStartMs: dispatchStartDate.getTime(),
         });
 
-        const capacity = maxSlotCapacity(grade, state.slots, now, simEnd);
+        const capacity = maxSlotCapacity(
+          grade,
+          state.slots,
+          dispatchStartDate,
+          simEnd,
+        );
         const utilization =
           capacity > 0 ? (sim.dispatchedTotal / capacity) * 100 : 0;
         const carryover = maxSecureTotal - sim.dispatchedTotal;
@@ -1288,6 +1317,15 @@
 
         const carryoverCount = Math.max(0, Math.round(carryover));
 
+        const dispatchLabel =
+          state.horizon === 2
+            ? "최대 파견 가능 (" +
+              fmtYMD(dispatchStartDate) +
+              "~" +
+              fmtYMD(new Date(simEnd.getTime() - 86400000)) +
+              ")"
+            : "최대 파견 가능";
+
         const horizonTitle =
           state.horizon === 2 ? "다음 주까지 (2주)" : "이번 로테이션 종료까지";
         let html =
@@ -1303,7 +1341,9 @@
           '<div class="result-row sub"><span>' +
           stockBreakdown +
           "</span></div>" +
-          '<div class="result-row"><span>최대 파견 가능<span class="result-max-tag">최대</span></span><b>' +
+          '<div class="result-row"><span>' +
+          dispatchLabel +
+          '<span class="result-max-tag">최대</span></span><b>' +
           Math.round(sim.dispatchedTotal).toLocaleString() +
           "마리</b></div>" +
           '<div class="result-row sub"><span>슬롯 가동률 ' +
@@ -1386,7 +1426,10 @@
 
       function renderStockStrategy(bonusNow, maxSecureTotal, grade) {
         const area = document.getElementById("stockStrategyArea");
-        if (bonusNow) {
+        // 다음 주까지(2주) 계산은 그 자체가 이미 "이번 주는 쟁여두고 다음 주에
+        // 몰아서 보낸다"는 스톡 전략을 직접 계산한 결과라, A안/B안 비교가 따로
+        // 필요 없다 — 위 결과가 곧 B안이다.
+        if (bonusNow || state.horizon === 2) {
           area.innerHTML = "";
           return;
         }
