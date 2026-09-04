@@ -1500,8 +1500,17 @@
           area.innerHTML = "";
           return;
         }
-        const gambleCount = Math.min(state.slots * BATCH_MAX, carryoverCount);
-        const gambleCarryover = Math.max(0, carryoverCount - gambleCount);
+        // 슬롯당 12마리씩 꽉 채워야만 트릭이 성립한다 — 실제 이월 재고가 60보다 적다고
+        // 60 밑으로 깎아서 보내면, 배치가 짧아져서(마리 수가 적을수록 배치 완료가 빨라짐)
+        // 경계를 넘기지 못하고 이번 주 안에 끝나버린다. 그러면 다음 주로 안 넘어가서
+        // "다음 주 보너스 가정"을 못 받고 이번 주 판정(대부분 미적용)으로 확정돼버리는
+        // 대참사가 난다 — 그래서 항상 슬롯 수 × 12로 고정한다. 재고가 60보다 적어도
+        // 상관없다 — 어차피 이 트릭은 "지금 있는 재고"가 아니라 "이번 로테이션 안에
+        // 앞으로 쌓일 재고까지 합쳐서 다음 주 몫을 이번 주 끝자락에 당겨 쓰는" 것이라,
+        // 이월 재고가 그만큼(최대 60까지) 마이너스로 내려가는 건 "재고가 모자란다"가
+        // 아니라 "다음 주에 처리해야 할 재고 부담이 그만큼 줄어든다"는 뜻이다.
+        const gambleCount = state.slots * BATCH_MAX;
+        const gambleCarryover = carryoverCount - gambleCount;
         const gambleTime = new Date(
           boundary1.getTime() - GRADE_INFO[grade].hours * BATCH_MAX * 3600000 + 60000,
         );
@@ -1511,21 +1520,29 @@
         const gambleCoin =
           totalCoin + gambleCount * GRADE_INFO[grade].coin * gambleMult;
 
+        const carryoverRow =
+          gambleCarryover >= 0
+            ? '<div class="result-row"><span>이월 재고</span><b>' +
+              gambleCarryover.toLocaleString() +
+              "마리</b></div>"
+            : '<div class="result-row"><span>이월 재고</span><b>0마리</b></div>' +
+              '<div class="result-row sub"><span>└ 다음 주 재고 압박</span><b>' +
+              Math.abs(gambleCarryover).toLocaleString() +
+              "마리만큼 여유</b></div>";
+
         area.innerHTML =
           '<div class="panel">' +
           "<h3>타이밍 트릭 (도박)</h3>" +
-          '<p class="desc" title="다음 주에도 이 등급이 보너스로 이어진다는 보장은 없어요 — 게임이 미리 안 보여줘서 도박이에요.">만약 ' +
+          '<p class="desc" title="다음 주에도 이 등급이 보너스로 이어진다는 보장은 없어요 — 게임이 미리 안 보여줘서 도박이에요. 60마리보다 적게 보내면 배치가 경계를 못 넘기고 이번 주 안에 끝나버려서 대참사입니다 — 반드시 슬롯당 12마리씩 꽉 채워서 보내세요.">만약 ' +
           fmtKSTClock(gambleTime) +
           "에 " +
           gambleCount.toLocaleString() +
-          "마리를 보내둔다면? (권장하지 않음)</p>" +
+          "마리(슬롯당 12마리씩 꽉 채워서)를 보내둔다면? (권장하지 않음)</p>" +
           '<div class="result-box">' +
           '<div class="result-row"><span>예상 코인</span><b>' +
           Math.round(gambleCoin).toLocaleString() +
           "코인</b></div>" +
-          '<div class="result-row"><span>이월 재고</span><b>' +
-          gambleCarryover.toLocaleString() +
-          "마리</b></div>" +
+          carryoverRow +
           "</div></div>";
       }
 
