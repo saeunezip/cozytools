@@ -491,9 +491,6 @@
         <div id="resultsArea"></div>
       </div>
 
-      <!-- ⑤ 스톡 전략 비교 -->
-      <div id="stockStrategyArea"></div>
-
       <!-- 상세 타임라인 -->
       <div class="panel">
         <button class="accordion-head" onclick="toggleTimeline()">
@@ -1085,31 +1082,22 @@
         // 앞당긴다 (배치가 클수록 그 배치의 모든 마리가 다 같이 오래 기다려야 하므로,
         // 슬롯 하나에 몰아주는 것보다 여러 슬롯에 고르게 나누는 쪽이 항상 더 빨리 끝난다).
         //
-        // 지금이 보너스 주간이면 배치 크기를 무조건 12로 채우지 않는다 — 12마리 꽉 채우면
-        // 완료가 경계를 살짝 넘길 수 있고, 이 등급은 이 시즌에 다시 보너스가 안 되므로
-        // 그건 확정 손해다. 반면 안 보내고 재고로 남겨도(이월 재고) 나중에 보내나 지금
-        // 넘겨서 보내나 어차피 미적용 1배로 똑같으므로, 손해 볼 바엔 아예 안 보내는 게 낫다.
-        // → 경계 전에 확실히 끝나는 한도 내에서만 채우고, 그 한도가 0이면 이번 라운드는
-        // 건너뛴다(그 몫은 이월 재고로 남는다).
+        // 배치는 무조건 "지금 이 시점이 속한 주"의 경계(일요일 00:00, 즉 토요일 자정) 전에
+        // 끝나는 한도 내에서만 채운다 — 보너스 주든 아니든 항상. 이번 주 계산(1주)과 다음
+        // 주 계산(2주, 스톡 전략)이 서로 다른 계산 모드로 명확히 나뉘어 있으니, 경계를
+        // 넘겨 다음 주로 흘러들어가는 "불명" 구간을 만들 필요가 없다 — 그 한도가 0이면
+        // 이번 라운드는 건너뛰고(그 몫은 이월 재고로 남는다), 다음 주 몫은 다음 주 계산에서
+        // 다시 다룬다.
         function tryFillAt(t) {
           if (t < dispatchStart) return;
           const freeIdxs = [];
           for (let i = 0; i < s; i++) if (slotFreeAt[i] <= t) freeIdxs.push(i);
           if (!freeIdxs.length || stockQueue <= 0) return;
 
-          // 지금 이 시점이 속한 주가 보너스로 확정돼 있으면, 배치가 그 주(week) 경계를
-          // 넘겨 완료되지 않는 한도 내에서만 채운다 — 안 그러면 확정 보너스를 놓친다.
-          // 다음 주까지 계산할 때도 "다음 주가 보너스로 확정된 경우"에 똑같이 적용되도록
-          // 전체 시뮬레이션 종료 시각이 아니라 "지금 이 시점이 속한 주"의 경계를 기준으로 본다.
-          let perSlotCap = BATCH_MAX;
-          if (bonusStatusAt(t, grade, optimisticSSR).status === "bonus") {
-            const weekBoundaryMs = nextRotationBoundary(new Date(t)).getTime();
-            const hoursToWeekBoundary = (weekBoundaryMs - t) / 3600000;
-            const safeSize = Math.floor(
-              hoursToWeekBoundary / info.hours - 1e-9,
-            );
-            perSlotCap = Math.max(0, Math.min(BATCH_MAX, safeSize));
-          }
+          const weekBoundaryMs = nextRotationBoundary(new Date(t)).getTime();
+          const hoursToWeekBoundary = (weekBoundaryMs - t) / 3600000;
+          const safeSize = Math.floor(hoursToWeekBoundary / info.hours - 1e-9);
+          const perSlotCap = Math.max(0, Math.min(BATCH_MAX, safeSize));
           if (perSlotCap <= 0) return;
 
           const totalToPlace = Math.min(
@@ -1156,6 +1144,31 @@
           }
         }
 
+        // 슬롯 가동률 최대화(다이아 가속) — 메인 집계(마리 수·코인·타임라인)에는 섞지 않고
+        // 별도로만 계산한다. 다이아를 쓸지는 선택이라, 위 결과와 분리해서 "얼마나 더
+        // 넣을 수 있는지"만 보여준다. 슬롯마다 마지막 자연 배치 뒤에 남는 자투리 시간은
+        // (경계까지 못 채우고 버려지던 부분) 즉시 완료를 쓰면 자연 소요시간과 무관하게
+        // 슬롯당 딱 한 번(최대 12마리)까지 채울 수 있다 — 재고가 슬롯보다 많이 남았을 때만
+        // (=slotQueue > 0, 즉 슬롯이 병목일 때만) 의미가 있다.
+        let accelFillCount = 0;
+        let stockForAccel = stockQueue;
+        for (let i = 0; i < s && stockForAccel > 0; i++) {
+          if (slotFreeAt[i] >= boundaryMs) continue; // 이미 경계까지 꽉 참 — 자투리 없음
+          const put = Math.min(BATCH_MAX, stockForAccel);
+          stockForAccel -= put;
+          accelFillCount += put;
+        }
+        let accelFillCoin = 0;
+        if (accelFillCount > 0) {
+          const fillStatus = bonusStatusAt(
+            boundaryMs - 1,
+            grade,
+            optimisticSSR,
+          ).status;
+          accelFillCoin =
+            accelFillCount * info.coin * (fillStatus === "bonus" ? BONUS_MULT : 1);
+        }
+
         return {
           dispatchedTotal,
           coinBonus,
@@ -1164,6 +1177,8 @@
           coinBorderMin,
           coinBorderMax,
           timeline,
+          accelFillCount,
+          accelFillCoin,
         };
       }
 
@@ -1250,7 +1265,7 @@
       }
 
       /* ==========================================================
-         ④ 결과부 렌더 + ⑤ 스톡 전략
+         ④ 결과부 렌더
          ========================================================== */
       function recalcAll() {
         renderBonusCard();
@@ -1348,7 +1363,21 @@
           "마리</b></div>" +
           '<div class="result-row sub"><span>슬롯 가동률 ' +
           utilization.toFixed(0) +
-          "%</span></div>" +
+          "%</span></div>";
+
+        if (sim.accelFillCount > 0) {
+          const fillDia = accelDiamondCost(sim.accelFillCount, grade);
+          html +=
+            '<div class="result-row sub"><span>└ 다이아로 슬롯 자투리 시간까지 채우면</span><b>+' +
+            sim.accelFillCount.toLocaleString() +
+            "마리 (다이아 " +
+            fillDia.toLocaleString() +
+            "개, +" +
+            Math.round(sim.accelFillCoin).toLocaleString() +
+            "코인)</b></div>";
+        }
+
+        html +=
           '<div class="result-row"><span>이월 재고</span><b>' +
           carryoverCount.toLocaleString() +
           "마리</b></div>";
@@ -1382,14 +1411,6 @@
             "</b></div>";
         }
 
-        if (sim.coinBorderMin > 0 || sim.coinBorderMax > 0) {
-          html +=
-            '<div class="result-row sub"><span>└ 보너스 여부 불명 (그 시점 로테이션 결과에 따라)</span><b>' +
-            Math.round(sim.coinBorderMin).toLocaleString() +
-            " ~ " +
-            Math.round(sim.coinBorderMax).toLocaleString() +
-            "</b></div>";
-        }
         html += "</div>";
 
         // 경고
@@ -1420,39 +1441,7 @@
 
         document.getElementById("resultsArea").innerHTML = html;
 
-        renderStockStrategy(bonusNow, maxSecureTotal, grade);
         renderTimeline(sim.timeline);
-      }
-
-      function renderStockStrategy(bonusNow, maxSecureTotal, grade) {
-        const area = document.getElementById("stockStrategyArea");
-        // 다음 주까지(2주) 계산은 그 자체가 이미 "이번 주는 쟁여두고 다음 주에
-        // 몰아서 보낸다"는 스톡 전략을 직접 계산한 결과라, A안/B안 비교가 따로
-        // 필요 없다 — 위 결과가 곧 B안이다.
-        if (bonusNow || state.horizon === 2) {
-          area.innerHTML = "";
-          return;
-        }
-        const coin = GRADE_INFO[grade].coin;
-        const planA = maxSecureTotal * coin;
-        const planB = maxSecureTotal * coin * BONUS_MULT;
-        area.innerHTML =
-          '<div class="panel">' +
-          "<h3>스톡 전략 비교</h3>" +
-          '<p class="desc">이번 주는 ' +
-          grade +
-          ' 보너스가 아니에요. "만약 다음에 보너스가 오면"을 가정한 조건부 비교예요 — 다음 주 보너스는 게임이 미리 보여주지 않아서 실제로 올지는 알 수 없어요.</p>' +
-          '<div class="result-box">' +
-          '<div class="result-row"><span>A안 — 지금 다 파견</span><b>' +
-          Math.round(planA).toLocaleString() +
-          "코인</b></div>" +
-          '<div class="result-row"><span>B안 — 다음 보너스 주까지 쟁여두기</span><b>' +
-          Math.round(planB).toLocaleString() +
-          "코인</b></div>" +
-          '<div class="result-row result-total"><span>차이 (B안이 보너스일 경우)</span><b>+' +
-          Math.round(planB - planA).toLocaleString() +
-          "코인</b></div>" +
-          "</div></div>";
       }
 
       // 같은 시각에 여러 슬롯이 동시에 채워지면(균등 분배라 흔함) 슬롯 수만큼 줄이 반복되므로,
