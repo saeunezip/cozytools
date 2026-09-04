@@ -1396,6 +1396,26 @@
             "코인</b></div>";
         }
 
+        // 타이밍 트릭(도박) — 다음 주까지 계산(스톡 전략)일 때만 의미가 있다. 이번 주
+        // 마지막에 슬롯마다 꽉 채운 배치(BATCH_MAX)를 "보너스 마감 시각 + 1분"에 걸어두면
+        // 완료가 다음 주로 1분 넘어가서, 원래는 다음 주부터 시작했을 파견을 하루 앞당기는
+        // 셈이 된다 — 단 다음 주 보너스가 실제로 이어질지는 게임이 미리 안 보여주므로 도박.
+        if (state.horizon === 2 && carryoverCount > 0) {
+          const gambleCount = Math.min(state.slots * BATCH_MAX, carryoverCount);
+          const gambleCarryover = Math.max(0, carryoverCount - gambleCount);
+          const gambleTime = new Date(
+            boundary1.getTime() - GRADE_INFO[grade].hours * BATCH_MAX * 3600000 + 60000,
+          );
+          html +=
+            '<div class="result-row sub" title="다음 주에도 이 등급이 보너스로 이어진다는 보장은 없어요 — 게임이 미리 안 보여줘서 도박이에요."><span>└ 만약 ' +
+            fmtKSTClock(gambleTime) +
+            "에 " +
+            gambleCount.toLocaleString() +
+            "마리를 보내둔다면? (권장하지 않음)</span><b>이월 재고 " +
+            gambleCarryover.toLocaleString() +
+            "마리</b></div>";
+        }
+
         html +=
           '<div class="result-row result-total"><span>예상 코인<span class="result-max-tag">이론 최대치</span></span><b>' +
           Math.round(totalCoin).toLocaleString() +
