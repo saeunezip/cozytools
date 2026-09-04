@@ -466,12 +466,9 @@
           <label>계산 범위</label>
           <div class="toggle-row" id="horizonTabs"></div>
           <p class="field-note">
-            스톡 전략 계산이에요 — 이번 주엔 파견하지 않고 재고만 쌓아두고,
-            다음 주부터 몰아서 보낸다고 가정해요. SR·R은 매주 보너스에
-            포함되니 다음 주도 확정 보너스로 계산해요. SSR은 이번 시즌
-            몫(소울 수만큼)을 이미 다 썼으면 다음 주는 확정 미적용, 아직
-            남았으면 "다음 주에 SSR 보너스가 온다"고 가정하고 계산해요 —
-            실제로는 아닐 수 있어요.
+            '다음 주까지'는 SSR 스톡 전략 계산으로, 다음 주에 SSR 2배
+            보너스라고 가정하고 이번 주엔 재고만 쌓아두고, 다음 주부터
+            몰아서 보낸다고 가정해요.
           </p>
         </div>
 
@@ -762,11 +759,48 @@
       function fallbackKey(week) {
         return "starsoul_fallback::" + SEASON.id + "::" + week;
       }
-      function getBonusForWeek(week) {
+
+      // 시즌 마지막 주(보통 4주차) 보너스는 정식 등록이 없어도, 그 앞의 모든 주가 이미
+      // 정식 등록돼 있으면 자동으로 확정할 수 있다 — 시즌 12종은 4주 동안 정확히 한 번씩만
+      // 보너스로 등장하므로, 12종 중 1~3주차에서 이미 쓰인 9종을 빼면 남는 3종이 곧
+      // 4주차다. 앞선 주 중 하나라도 아직 등록 안 됐으면 계산할 수 없다(null).
+      function autoFinalWeekBonus() {
+        if (!SEASON) return null;
+        const lastWeek = SEASON.weeks;
+        const used = {};
+        for (let week = 1; week < lastWeek; week++) {
+          const slot = SEASON.bonus.find(function (b) {
+            return b.week === week;
+          });
+          if (!slot || !slot.souls) return null; // 아직 정식 등록 안 된 주가 있음
+          slot.souls.forEach(function (n) {
+            used[n] = true;
+          });
+        }
+        const remaining = SEASON.souls
+          .map(function (s) {
+            return s.name;
+          })
+          .filter(function (n) {
+            return !used[n];
+          });
+        return remaining.length === 3 ? remaining : null; // 데이터가 맞아떨어질 때만 확정
+      }
+
+      // 정식 등록(서버) 또는 위 자동 확정만 "확정"으로 친다 — 사용자가 로컬에 직접 고른
+      // 폴백 선택은 본인의 추측일 뿐이라 "확정" 취급하지 않는다(아래 SSR 배너 판단 등에 씀).
+      function confirmedBonusForWeek(week) {
         const slot = SEASON.bonus.find(function (b) {
           return b.week === week;
         });
         if (slot && slot.souls) return slot.souls;
+        if (week === SEASON.weeks) return autoFinalWeekBonus();
+        return null;
+      }
+
+      function getBonusForWeek(week) {
+        const confirmed = confirmedBonusForWeek(week);
+        if (confirmed) return confirmed;
         const saved = localStorage.getItem(fallbackKey(week));
         return saved ? JSON.parse(saved) : null;
       }
@@ -1363,9 +1397,30 @@
               ")"
             : "최대 파견 가능";
 
+        // 다음 주(파견이 실제로 나가는 주)가 이미 확정(정식 등록 또는 4주차 자동 확정)됐는데
+        // SSR이 없으면, "다음 주에 SSR 보너스가 온다"는 가정이 더 이상 추측이 아니라 틀린
+        // 얘기다 — 결과 맨 위에 분명히 알려준다.
+        let topNotice = "";
+        if (state.horizon === 2 && grade === "SSR" && SEASON) {
+          const nextWeek = CUR_WEEK + 1;
+          if (nextWeek <= SEASON.weeks) {
+            const confirmedNext = confirmedBonusForWeek(nextWeek);
+            const hasSSR =
+              confirmedNext &&
+              confirmedNext.some(function (n) {
+                return SOUL_MAP[n] && SOUL_MAP[n].grade === "SSR";
+              });
+            if (confirmedNext && !hasSSR) {
+              topNotice =
+                '<div class="info-box" style="margin-bottom:12px;">다음 주는 확정적으로 SSR 보너스가 아닙니다.</div>';
+            }
+          }
+        }
+
         const horizonTitle =
           state.horizon === 2 ? "다음 주까지 (2주)" : "이번 로테이션 종료까지";
         let html =
+          topNotice +
           '<div class="result-box">' +
           '<div class="result-title">' +
           horizonTitle +
