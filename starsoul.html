@@ -1047,6 +1047,10 @@
 
         let stockQueue = 0;
         const slotFreeAt = new Array(s).fill(nowMs);
+        // 슬롯별 "경계 전 마지막 자연 배치"에 몇 마리를 넣었는지. 균등 분배의 나머지(extra)를
+        // 앞쪽 슬롯부터 +1씩 나눠주기 때문에 슬롯마다 1 차이가 날 수 있어서 배열로 둔다.
+        // (가속을 안 쓰려는 사람에게 "마지막 파견은 N개만" 이라고 안내할 때 쓴다)
+        const lastBatchSize = new Array(s).fill(0);
         let dispatchedTotal = 0;
         let coinBonus = 0,
           coinPlain = 0,
@@ -1116,6 +1120,7 @@
             if (put <= 0) return;
             stockQueue -= put;
             dispatchedTotal += put;
+            lastBatchSize[i] = put;
             const completeAt = t + info.hours * put * 3600000; // 배치 완료시간 = 마리당 시간 × 마리 수
             slotFreeAt[i] = completeAt;
             classify(t, completeAt, put);
@@ -1147,8 +1152,9 @@
           }
         }
 
-        // 슬롯 가동률 최대화(다이아 가속) — 메인 집계(마리 수·코인·타임라인)에는 섞지 않고
-        // 별도로만 계산한다. 다이아를 쓸지는 선택이라, 위 결과와 분리해서 보여준다.
+        // 슬롯 자투리 시간 채우기 — 예전엔 "다이아를 쓸지는 선택"이라 별도 집계로 빼뒀지만,
+        // 새우님 목표가 "가능한 모든 시간을 써서 적은 다이아를 소모하는 것"이라 이제는
+        // 기본 계산에 포함시킨다 (마리 수·코인·타임라인 모두).
         // 슬롯마다 마지막 자연 배치 뒤에 남는 자투리 시간(< 마리당 소요시간 — 안 그러면
         // 자연 배치가 이미 채웠을 것이다)에는 새 마리를 자연 속도로 넣어도 경계 전에
         // 못 끝난다. 하지만 "즉시 완료"는 가속을 누르는 그 순간 남은 시간만큼만 다이아를
@@ -1157,27 +1163,25 @@
         // 해서 훨씬 비싸진다).
         let accelFillCount = 0;
         let accelFillDiamonds = 0;
-        let stockForAccel = stockQueue;
-        for (let i = 0; i < s && stockForAccel > 0; i++) {
+        for (let i = 0; i < s && stockQueue > 0; i++) {
+          if (slotFreeAt[i] < dispatchStart) continue; // 아직 파견을 시작도 안 한 슬롯
           const gapHours = (boundaryMs - slotFreeAt[i]) / 3600000;
           if (gapHours <= 0) continue; // 이미 경계까지 꽉 참 — 자투리 없음
+          // 자연 배치가 1마리도 못 넣는 자투리일 때만 가속으로 채운다 (tryFillAt의 safeSize와
+          // 똑같은 판정을 써야 한다 — 한 마리가 딱 경계에 걸치는 경우까지 자연 배치가
+          // 거부하므로, 여기서 >= 로 걸러버리면 그 자리를 영영 못 채운다).
+          if (Math.floor(gapHours / info.hours - 1e-9) >= 1) continue;
           const overflowHours = info.hours - gapHours; // 자투리를 다 쓰고도 넘치는 시간
           // 자연 계산의 안전 여유(1e-9시간)와 딱 맞아떨어지는 경계 사례라 초과분이
           // 0에 수렴할 수 있다 — 그래도 가속 버튼을 누르는 행위 자체는 있으니 최소 1개.
           const dia = Math.max(1, Math.ceil((overflowHours * 60) / 5));
-          stockForAccel -= 1;
+          stockQueue -= 1;
           accelFillCount += 1;
           accelFillDiamonds += dia;
-        }
-        let accelFillCoin = 0;
-        if (accelFillCount > 0) {
-          const fillStatus = bonusStatusAt(
-            boundaryMs - 1,
-            grade,
-            optimisticSSR,
-          ).status;
-          accelFillCoin =
-            accelFillCount * info.coin * (fillStatus === "bonus" ? BONUS_MULT : 1);
+          dispatchedTotal += 1;
+          // 가속으로 경계 직전(토 23:59)에 완료된다 — 그 주 보너스 판정 안에 들어간다.
+          classify(slotFreeAt[i], boundaryMs - 60000, 1);
+          slotFreeAt[i] = boundaryMs;
         }
 
         return {
@@ -1190,7 +1194,10 @@
           timeline,
           accelFillCount,
           accelFillDiamonds,
-          accelFillCoin,
+          // 실제로 자연 배치가 들어간 슬롯의 마지막 배치 크기만 (0은 파견 없던 슬롯)
+          lastBatchSizes: lastBatchSize.filter(function (n) {
+            return n > 0;
+          }),
         };
       }
 
@@ -1269,11 +1276,17 @@
 
       // 슬롯이 재고 걱정 없이 논스톱으로 돌았을 때 남은 기간 동안 처리 가능한 이론상 최대량.
       // (실제 파견 마리 수를 이 값과 비교하면 "재고가 병목인지 슬롯이 병목인지"를 알 수 있다)
-      function maxSlotCapacity(grade, s, now, boundary) {
-        const hoursLeft = (boundary.getTime() - now.getTime()) / 3600000;
-        const hoursPerFullBatch = GRADE_INFO[grade].hours * BATCH_MAX; // 12마리 꽉 채운 배치 1번 완료까지 걸리는 시간
-        const cyclesPerSlot = Math.floor(hoursLeft / hoursPerFullBatch) + 1;
-        return s * cyclesPerSlot * BATCH_MAX;
+      //
+      // 예전엔 근사식(사이클 수 = floor(남은시간 / 배치시간) + 1)을 썼는데, 실제로는 절대
+      // 못 채우는 사이클을 늘 하나씩 더 얹어서 — 예: 168시간은 SSR 기준 정확히 7사이클인데
+      // floor(168/24)+1 = 8사이클로 봐서 분모가 480(진짜 최대는 420) — 슬롯을 정확히 꽉
+      // 채워도 가동률이 86~88%로 나왔다. 지금은 근사식을 버리고 재고를 사실상 무한대로 둔 채
+      // 같은 simulate() 엔진을 한 번 더 돌려서, 분모가 실제 배치 로직(자투리 가속 채우기까지)과
+      // 100% 같은 값이 되게 한다. 이벤트 수가 적어서 두 번 도는 비용은 무시할 만하다.
+      function maxSlotCapacity(opts) {
+        return simulate(
+          Object.assign({}, opts, { N0: 999999999, todayCapRemaining: 0 }),
+        ).dispatchedTotal;
       }
 
       /* ==========================================================
@@ -1310,7 +1323,7 @@
         // 파견은 다음 주(boundary1)부터 몰아서 시작한다고 가정한다.
         const dispatchStartDate = state.horizon === 2 ? boundary1 : now;
 
-        const sim = simulate({
+        const simOpts = {
           grade,
           N0: state.stock,
           dailyCap,
@@ -1320,14 +1333,11 @@
           boundary: simEnd,
           optimisticSSR: state.horizon === 2,
           dispatchStartMs: dispatchStartDate.getTime(),
-        });
+        };
+        const sim = simulate(simOpts);
 
-        const capacity = maxSlotCapacity(
-          grade,
-          state.slots,
-          dispatchStartDate,
-          simEnd,
-        );
+        // 같은 조건에 재고만 무한대로 둔 시뮬레이션이 분모 — 재고가 충분하면 정확히 100%가 된다
+        const capacity = maxSlotCapacity(simOpts);
         const utilization =
           capacity > 0 ? (sim.dispatchedTotal / capacity) * 100 : 0;
         const carryover = maxSecureTotal - sim.dispatchedTotal;
@@ -1377,24 +1387,35 @@
           utilization.toFixed(0) +
           "%</span></div>";
 
+        // 위 "최대 파견 가능"에는 슬롯 자투리 시간을 가속으로 채운 몫이 이미 포함돼 있다.
+        // 그 몫은 다이아를 써야만 들어가는 마리이므로, 필요한 다이아 개수와 "안 쓰고 싶으면
+        // 마지막 파견을 몇 개만 보내면 되는지"를 바로 아래에 붙여준다.
         if (sim.accelFillCount > 0) {
-          const fillUtilization =
-            capacity > 0
-              ? ((sim.dispatchedTotal + sim.accelFillCount) / capacity) * 100
-              : 0;
+          const accelDeadline = new Date(simEnd.getTime() - 60000); // 경계 1분 전 = 토 23:59
           html +=
-            '<div class="result-row sub"><span>└ 다이아로 슬롯 자투리 시간까지 채우면</span><b>+' +
-            sim.accelFillCount.toLocaleString() +
-            "마리 (다이아 " +
+            '<div class="result-row sub"><span>└ ' +
+            fmtKSTClock(accelDeadline) +
+            " 전 남은 시간 가속 시 필요 다이아</span><b>" +
             sim.accelFillDiamonds.toLocaleString() +
-            "개, +" +
-            Math.round(sim.accelFillCoin).toLocaleString() +
-            "코인)</b></div>" +
-            '<div class="result-row sub"><span>&nbsp;&nbsp;→ 슬롯 가동률 ' +
-            fillUtilization.toFixed(0) +
-            "%, 이월 재고 " +
-            (carryoverCount - sim.accelFillCount).toLocaleString() +
-            "마리</span></div>";
+            "개</b></div>";
+
+          const sizes = sim.lastBatchSizes;
+          if (sizes.length) {
+            const minSize = Math.min.apply(null, sizes);
+            const maxSize = Math.max.apply(null, sizes);
+            const sizeLabel =
+              minSize === maxSize
+                ? minSize + "개"
+                : minSize + "~" + maxSize + "개";
+            html +=
+              '<div class="result-row sub"><span>└ 가속 마무리를 원하지 않으시면 마지막 파견은 ' +
+              sizeLabel +
+              "만 보내주세요 (다이아 " +
+              sim.accelFillDiamonds.toLocaleString() +
+              "개를 안 쓰면 " +
+              sim.accelFillCount.toLocaleString() +
+              "마리는 못 채워요)</span></div>";
+          }
         }
 
         html +=
@@ -1435,9 +1456,11 @@
 
         // 경고
         let warnings = "";
-        const weeklyCycles =
-          Math.floor(168 / (GRADE_INFO[grade].hours * BATCH_MAX)) + 1;
-        const weeklyCapacity = state.slots * weeklyCycles * BATCH_MAX;
+        // 슬롯 하나가 7일(168시간) 내내 쉬지 않고 돌면 마리당 소요시간으로 나눈 만큼이 한계다.
+        // 배치를 어떻게 쪼개도(12마리 상한 안에서) 총량은 이 값을 못 넘는다 — 예전 근사식
+        // (사이클 수 + 1)은 maxSlotCapacity와 같은 이유로 늘 한 사이클씩 과대평가했다.
+        const weeklyCapacity =
+          state.slots * Math.floor(168 / GRADE_INFO[grade].hours + 1e-9);
         // 이 경고는 "보너스 주 7일 안에 재고를 다 태울 수 있는가"를 보는 것이라, 2주치
         // 합계인 maxSecureTotal과 비교하면 다음 주까지 계산할 때 항상 넘치는 것처럼
         // 보여 의미가 없어진다 — 이번 주까지(1주) 볼 때만 표시한다.
