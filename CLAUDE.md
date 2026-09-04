@@ -28,8 +28,10 @@ guild-flower와 스택·리포지토리·배포 흐름 전부 다르다.
 ## 배포
 
 - **GitHub 리포지토리**: [saeunezip/cozytools](https://github.com/saeunezip/cozytools) — guild-flower가 쓰는 `cozy-flower`와는 별개.
-- **배포 방식**: GitHub Pages, `main` 브랜치 `/ (root)`. 빌드 스텝 없음 — 리포지토리 루트가 곧 사이트 루트. `git push origin main`이면 반영됨 (재배포 절차 따로 없음 — guild-flower의 clasp/exec 방식과 다름).
-- **도메인**: `cozytools.kro.kr` 연결 완료. 저장소 루트에 `CNAME` 파일로 관리됨 (GitHub Pages 커스텀 도메인 설정 시 자동 생성/갱신되니 직접 건드릴 일 거의 없음).
+- **배포 방식**: `main` 브랜치 `git push origin main`이면 반영됨 (재배포 절차 따로 없음 — guild-flower의 clasp/exec 방식과 다름). 같은 저장소에서 **두 곳으로 동시에 배포됨**:
+  - **Cloudflare Pages** (`https://cozytools.pages.dev`) — **실제 쓰는 주소.** 이 저장소에 push하면 자동으로 재배포됨. guild-flower의 app.html "cozytools" 바로가기도 이 주소를 가리킴.
+  - GitHub Pages (`https://saeunezip.github.io/cozytools/`) — 같이 배포는 되지만 실제로 링크하거나 홍보하는 곳은 아님.
+- **도메인 `cozytools.kro.kr`은 안 씀 (2026-09-05부로 폐기).** `kro.kr`이 Public Suffix List에 없어서 GitHub Pages(Let's Encrypt)가 인증서를 영영 못 받는 구조적 문제가 있었음 — 자세한 진단은 `도메인-HTTPS-문제.md` 참고(지금은 참고용 기록일 뿐, 더 손볼 계획 없음). 코드의 `og:url` 등은 전부 `cozytools.pages.dev`로 정리됨.
 - **로컬 git 인증**: 이 리포지토리는 push 시 Git Credential Manager가 브라우저/모바일 앱 승인을 요구함 (사람이 한 번 승인해야 하는 단계 — Claude Code가 대신 못 함).
 
 ---
