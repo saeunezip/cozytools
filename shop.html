@@ -604,7 +604,7 @@
       // 이번 상점 마감. 상점이 바뀌면 이 두 값만 고치면 된다 (더는 사용자 입력 안 받음).
       const COUNTDOWN_END_YMD = "2026-11-08"; // 게임 카운트다운 종료 (00:00 KST)
       const DEADLINE_YMD = "2026-11-22"; // = COUNTDOWN_END_YMD + GRACE_DAYS(14일)
-      const DAILY_CAP = { free: 12, pass: 30 };
+      const DAILY_CAP = { free: 18, pass: 30 };
       // 요율 확정치. 게임 오픈 이후 4개월간 유지된 패턴이라 편집 가능하게 두지 않는다.
       // 2x = "SSR 보너스 2주 + SR 보너스 2주" 평균: (8+8+6+6)/4 = 7
       // 1x = 보너스를 안 노리므로 코인이 제일 높은 SSR만 재배: 4
@@ -676,7 +676,7 @@
          ========================================================== */
       function buildTabs() {
         document.getElementById("pathTabs").innerHTML =
-          '<button data-p="free" onclick="setState(\'path\',\'free\')">무료 상한 12/일</button>' +
+          '<button data-p="free" onclick="setState(\'path\',\'free\')">무료 상한 18/일</button>' +
           '<button data-p="pass" onclick="setState(\'path\',\'pass\')">패스권 상한 30/일</button>';
       }
 
