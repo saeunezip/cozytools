@@ -16,101 +16,78 @@
 
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
-    <div class="container">
-      <div class="hero-panel">
-        <div class="hero">
-          <h1>Cozytools</h1>
+  <body class="home-page">
+    <header class="home-header">
+      <h1 class="home-wordmark"><a href="index.html" aria-label="Cozytools 홈">COZY<span>TOOLS</span></a></h1>
+      <p>더 코지 플로리스트<br />플레이 유틸리티</p>
+    </header>
+
+    <main class="home-main">
+      <section class="home-today" aria-label="오늘">
+        <div class="home-date" aria-label="오늘 날짜">
+          <strong id="todayDay">--</strong>
+          <span><b id="todayMonth">---</b><b id="todayWeekday">---</b></span>
+        </div>
+      </section>
+
+      <section class="home-events" aria-labelledby="eventsTitle">
+        <div class="home-section-head">
+          <h2 id="eventsTitle">진행중인 이벤트</h2>
+          <a href="calendar.html">캘린더 열기 <span aria-hidden="true">→</span></a>
+        </div>
+        <div id="ongoingList" aria-live="polite">
+          <div class="home-event-state">일정을 불러오는 중...</div>
+        </div>
+      </section>
+
+      <section class="home-tools" aria-labelledby="toolsTitle">
+        <div class="home-tools-heading">
+          <span>UTILITY DIRECTORY</span>
+          <h2 id="toolsTitle">코지 도구 모음</h2>
         </div>
 
-        <a class="ongoing-link" href="calendar.html">
-          <div class="ongoing-card">
-            <div class="panel-head">
-              <p class="desc">진행중인 이벤트</p>
-              <span class="arrow">›</span>
-            </div>
-            <div class="ongoing-list" id="ongoingList">
-              <div class="empty-msg">불러오는 중...</div>
-            </div>
-          </div>
-        </a>
-      </div>
+        <nav class="home-tool-list" aria-label="계산기 목록">
+          <a class="home-tool" href="calc.html">
+            <span class="home-tool-number">01</span>
+            <span class="home-tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="1.5"></rect><path d="M7.5 6.5h9M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h4"></path></svg>
+            </span>
+            <span class="home-tool-copy"><strong>임무 횟수 계산기</strong><small>길드전 목표 점수 · 등급별 조합</small></span>
+            <span class="home-tool-arrow" aria-hidden="true">↗</span>
+          </a>
 
-      <div class="card-list">
-        <a class="card" href="calc.html">
-          <div class="icon">🧮</div>
-          <div class="body">
-            <div class="cname">임무 횟수 계산기</div>
-            <div class="cdesc">
-              길드전 목표 점수까지 몇 번, 어떤 등급으로 채우면 되는지 계산해요
-            </div>
-          </div>
-          <div class="arrow">›</div>
-        </a>
+          <a class="home-tool" href="shop.html">
+            <span class="home-tool-number">02</span>
+            <span class="home-tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 10h16l-1 11H5L4 10Z"></path><path d="M8 10V7a4 4 0 0 1 8 0v3M8 14v3M16 14v3"></path></svg>
+            </span>
+            <span class="home-tool-copy"><strong>스타소울 상점 계산기</strong><small>보유 코인 · 구매 가능 아이템</small></span>
+            <span class="home-tool-arrow" aria-hidden="true">↗</span>
+          </a>
 
-        <a class="card" href="shop.html">
-          <div class="icon">🏪</div>
-          <div class="body">
-            <div class="cname">스타소울 상점 계산기</div>
-            <div class="cdesc">
-              남은 기간 동안 모일 코인으로 상점에서 뭘 살 수 있는지 계산해요
-            </div>
-          </div>
-          <div class="arrow">›</div>
-        </a>
+          <a class="home-tool" href="starsoul.html">
+            <span class="home-tool-number">03</span>
+            <span class="home-tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M14.5 5.5c2.8-2.8 5.5-2.5 5.5-2.5s.3 2.7-2.5 5.5l-5.2 5.2-4-4 6.2-4.2Z"></path><path d="m8.3 9.7-4.8.8 3 3M12.3 13.7l-.8 4.8-3-3M14.5 9.5h.01M6 17c-1.2.2-2.8 1.8-3 4 2.2-.2 3.8-1.8 4-3"></path></svg>
+            </span>
+            <span class="home-tool-copy"><strong>스타소울 파견 계산기</strong><small>주간 보너스 · 최대 파견량</small></span>
+            <span class="home-tool-arrow" aria-hidden="true">↗</span>
+          </a>
+        </nav>
+      </section>
+    </main>
 
-        <a class="card" href="starsoul.html">
-          <div class="icon">🚀</div>
-          <div class="body">
-            <div class="cname">스타소울 파견 계산기</div>
-            <div class="cdesc">
-              이번 주 보너스와 마감까지 남은 시간, 보유량으로 최대 파견 가능량을 계산해요
-            </div>
-          </div>
-          <div class="arrow">›</div>
-        </a>
-      </div>
-
-      <p class="footer-note">
-        &lt;백야&gt;길드 - s2.새우 제작 ·
-        <a href="guild.html">길드 홍보지 바로가기</a><br />
-        새로운 기능 추가 요청 및 오류 제보는 카카오톡 오픈채팅으로 연락주세요.<br />
-        <a href="https://open.kakao.com/me/cozysaeu" target="_blank" rel="noopener noreferrer">https://open.kakao.com/me/cozysaeu</a>
-      </p>
-    </div>
+    <footer class="home-footer">
+      <div><strong>&lt;백야&gt;</strong><span>직접 만들고, 길드원들과 함께 다듬었습니다.</span></div>
+      <div><a href="guild.html">길드 홍보지</a><a href="https://open.kakao.com/me/cozysaeu" target="_blank" rel="noopener noreferrer">제안 · 오류 제보</a></div>
+    </footer>
 
     <script>
       const API_URL = "https://cozytools-backend.saeunezip.workers.dev";
 
-      const PALETTE = [
-        "#6C63C7",
-        "#E0757A",
-        "#3FA796",
-        "#E3A23C",
-        "#4A90D9",
-        "#B45FC0",
-        "#D9698B",
-        "#5FAF6B",
-        "#C77B3F",
-        "#4FA8C9",
-        "#9C6ADE",
-        "#7A9C3F",
-      ];
       const WEEKDAY_LABEL = ["일", "월", "화", "수", "목", "금", "토"];
-      let COLOR_MAP = {};
-      function assignColors(events) {
-        COLOR_MAP = {};
-        let i = 0;
-        events.forEach(function (ev) {
-          if (!(ev.id in COLOR_MAP)) {
-            COLOR_MAP[ev.id] = PALETTE[i % PALETTE.length];
-            i++;
-          }
-        });
-      }
-      function colorFor(id) {
-        return COLOR_MAP[id] || PALETTE[0];
-      }
+      const MONTH_LABEL = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      const WEEKDAY_EN = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
       function toDateOnly(d) {
         return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -141,15 +118,24 @@
         return idx === -1 ? { category: null, name: title } : { category: title.slice(0, idx), name: title.slice(idx + 3) };
       }
 
-      function expiryWarning(endDate) {
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function deadlineLabel(endDate) {
         const daysLeft = diffDays(endDate, today);
         if (daysLeft === 0) {
           const endOfToday = addDays(today, 1);
           const hoursLeft = Math.max(1, Math.ceil((endOfToday - new Date()) / 3600000));
-          return hoursLeft + "시간 남음";
+          return { text: "TODAY · " + hoursLeft + "H", urgent: true };
         }
-        if (daysLeft === 1) return "1일 남음";
-        return null;
+        if (daysLeft > 0) return { text: "D—" + String(daysLeft).padStart(2, "0"), urgent: daysLeft === 1 };
+        return { text: "진행중", urgent: false };
       }
 
       function normalizeEvent(raw) {
@@ -172,56 +158,57 @@
         };
       }
 
+      function setToday() {
+        document.getElementById("todayDay").textContent = String(today.getDate()).padStart(2, "0");
+        document.getElementById("todayMonth").textContent = MONTH_LABEL[today.getMonth()];
+        document.getElementById("todayWeekday").textContent = WEEKDAY_EN[today.getDay()];
+        const dateBox = document.querySelector(".home-date");
+        dateBox.classList.toggle("is-saturday", today.getDay() === 6);
+        dateBox.classList.toggle("is-sunday", today.getDay() === 0);
+      }
+
       function renderOngoing(events) {
         const items = [];
         events.forEach(function (ev) {
           const parts = extractCategory(ev.title);
           if (ev.repeat === "weekly") {
-            const period =
+            const schedule =
               ev.weekdayStart === ev.weekdayEnd
                 ? "매주 " + WEEKDAY_LABEL[ev.weekdayStart] + "요일"
                 : "매주 " + WEEKDAY_LABEL[ev.weekdayStart] + "~" + WEEKDAY_LABEL[ev.weekdayEnd] + "요일";
-            items.push({ id: ev.id, category: parts.category, name: parts.name, period: period, warn: null, color: colorFor(ev.id) });
+            items.push({ category: parts.category || "주간 일정", name: parts.name, deadline: "WEEKLY", schedule: schedule, urgent: false, sort: 999 });
           } else {
             const s = parseYMD(ev.start),
               e = parseYMD(ev.end);
             if (today >= s && today <= e) {
-              const period = fmtYMD(s).slice(5).replace("-", ".") + " ~ " + fmtYMD(e).slice(5).replace("-", ".");
+              const deadline = deadlineLabel(e);
               items.push({
-                id: ev.id,
-                category: parts.category,
+                category: parts.category || "이벤트",
                 name: parts.name,
-                period: period,
-                warn: expiryWarning(e),
-                color: colorFor(ev.id),
+                deadline: deadline.text,
+                urgent: deadline.urgent,
+                schedule: fmtYMD(s).slice(5).replace("-", ".") + " — " + fmtYMD(e).slice(5).replace("-", "."),
+                sort: diffDays(e, today),
               });
             }
           }
         });
 
+        items.sort(function (a, b) { return a.sort - b.sort; });
+
         const box = document.getElementById("ongoingList");
         if (!items.length) {
-          box.innerHTML = '<div class="empty-msg">진행중인 이벤트가 없습니다.</div>';
+          box.innerHTML = '<div class="home-event-state">현재 진행중인 이벤트가 없습니다.</div>';
           return;
         }
-        box.innerHTML = items
-          .map(function (it) {
+        box.innerHTML = items.slice(0, 5)
+          .map(function (it, index) {
             return (
-              '<div class="ongoing-btn">' +
-              '<div class="ongoing-top">' +
-              '<span class="ongoing-dot" style="background:' +
-              it.color +
-              '"></span>' +
-              (it.category ? '<span class="ongoing-cat">' + it.category + "</span>" : "") +
-              "</div>" +
-              '<div class="ongoing-name">' +
-              it.name +
-              "</div>" +
-              '<div class="ongoing-period">' +
-              it.period +
-              (it.warn ? ' · <span class="ongoing-warn">' + it.warn + "</span>" : "") +
-              "</div>" +
-              "</div>"
+              '<a class="home-event' + (it.urgent ? " is-urgent" : "") + '" href="calendar.html">' +
+              '<span class="home-event-number">' + String(index + 1).padStart(2, "0") + "</span>" +
+              '<span class="home-event-copy"><small>' + escapeHtml(it.category) + "</small><strong>" + escapeHtml(it.name) + "</strong><em>" + escapeHtml(it.schedule) + "</em></span>" +
+              '<span class="home-event-deadline">' + escapeHtml(it.deadline) + "</span>" +
+              "</a>"
             );
           })
           .join("");
@@ -233,14 +220,14 @@
           const data = await res.json();
           if (!data.ok) throw new Error(data.error || "불러오기 실패");
           const events = (data.events || []).map(normalizeEvent);
-          assignColors(events);
           renderOngoing(events);
         } catch (err) {
           document.getElementById("ongoingList").innerHTML =
-            '<div class="empty-msg">일정을 불러오지 못했어요.</div>';
+            '<div class="home-event-state is-error">일정을 불러오지 못했어요. 캘린더에서 다시 확인해 주세요.</div>';
         }
       }
 
+      setToday();
       loadOngoing();
     </script>
   </body>

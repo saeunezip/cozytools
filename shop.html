@@ -457,12 +457,14 @@
         color: #90a4ae;
       }
     </style>
+    <link rel="stylesheet" href="editorial.css" />
   </head>
   <body>
     <div class="container">
       <div class="header-area">
-        <h2 class="title">스타소울 상점</h2>
-        <a href="index.html" class="nav-btn">도구 모음</a>
+        <a href="index.html" class="site-wordmark" aria-label="Cozytools 홈">COZY<span>TOOLS</span></a>
+        <a href="index.html" class="nav-btn">← 도구 모음</a>
+        <h1 class="title">스타소울 상점</h1>
       </div>
 
       <div class="info-box">
@@ -473,7 +475,7 @@
         따로 해요.
       </div>
 
-      <div class="panel">
+      <div class="panel deadline-panel">
         <h3>상점 마감</h3>
         <p class="desc">카운트다운이 끝나도 14일 동안은 이 상점에서 계속 살 수 있어서(다음 상점과 동시 운영), 그 유예까지 더한 진짜 마감 기준이에요.</p>
         <div id="deadlineDeriveArea"></div>
@@ -851,7 +853,7 @@
 
         document.getElementById("resultsArea").innerHTML =
           '<div class="result-box">' +
-          '<div class="result-row sub"><span>마감까지 ' + totalDays + "일 · " + seasons.length + "개 시즌</span></div>" +
+          '<div class="result-title">마감까지 ' + totalDays + "일 · " + seasons.length + "개 시즌</div>" +
           '<div class="result-row"><span>현재 보유 코인</span><b>' + state.coins.toLocaleString() + '코인</b></div>' +
           '<div class="result-row"><span>예상 획득 코인</span><b>' + Math.round(totalEarned).toLocaleString() + '코인</b></div>' +
           (friendCoin > 0 ? '<div class="result-row sub"><span>└ 친구 소울 포함 (하루 4개 × 4코인 × ' + totalDays + '일)</span><b>+' + Math.round(friendCoin).toLocaleString() + '</b></div>' : '') +

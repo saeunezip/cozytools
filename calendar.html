@@ -290,12 +290,14 @@
         }
       }
     </style>
+    <link rel="stylesheet" href="editorial.css" />
   </head>
   <body>
     <div class="container">
       <div class="header-area">
-        <h2 class="title">이벤트 캘린더</h2>
-        <a href="index.html" class="nav-btn">도구 모음</a>
+        <a href="index.html" class="site-wordmark" aria-label="Cozytools 홈">COZY<span>TOOLS</span></a>
+        <a href="index.html" class="nav-btn">← 도구 모음</a>
+        <h1 class="title">이벤트 캘린더</h1>
       </div>
 
       <div class="info-box">
@@ -389,18 +391,18 @@
       }
 
       const PALETTE = [
-        "#6C63C7",
-        "#E0757A",
-        "#3FA796",
-        "#E3A23C",
-        "#4A90D9",
-        "#B45FC0",
-        "#D9698B",
-        "#5FAF6B",
-        "#C77B3F",
-        "#4FA8C9",
-        "#9C6ADE",
-        "#7A9C3F",
+        "#AFC8FF",
+        "#B8DFF8",
+        "#BCE7DE",
+        "#C8E7C5",
+        "#D8CBFF",
+        "#E7C5F4",
+        "#F5C5D7",
+        "#FFD1C1",
+        "#C8D7E8",
+        "#BDE5EA",
+        "#D4D7F5",
+        "#CEE3D5",
       ];
 
       // 같은 이벤트는 항상 같은 색, 화면에 같이 뜨는 이벤트끼리는 색이 안 겹치게
@@ -599,7 +601,7 @@
             return o.end >= monthStart && o.start <= monthEnd;
           })
           .sort(function (a, b) {
-            return a.start - b.start;
+            return b.start - a.start;
           });
 
         const listBox = document.getElementById("eventList");
