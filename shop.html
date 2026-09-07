@@ -230,8 +230,8 @@
       .season-row {
         border: 2px solid #eceff1;
         border-radius: 10px;
-        padding: 11px 12px;
-        margin-bottom: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
       }
       .season-row .stop {
         display: flex;
@@ -251,13 +251,16 @@
       .season-row .snote {
         font-size: 11.5px;
         color: #90a4ae;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
       }
       .season-row .sbottom {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 10px;
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 1px solid #eceff1;
       }
       .season-row .scoin {
         font-size: 12.5px;
@@ -266,46 +269,99 @@
       .season-row .scoin b {
         color: #1f3b73;
       }
-      .mode-toggle {
+      .season-setting {
+        display: grid;
+        grid-template-columns: 76px minmax(0, 1fr);
+        align-items: start;
+        gap: 10px;
+        margin-top: 9px;
+      }
+      .setting-label {
+        padding-top: 8px;
+        font-size: 11.5px;
+        font-weight: 800;
+        color: #78909c;
+      }
+      .mode-toggle,
+      .access-toggle {
         display: flex;
         gap: 6px;
-        flex: none;
+        flex-wrap: wrap;
       }
-      .mode-toggle button {
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: 2px solid #eceff1;
-        background: #fbfbfc;
-        color: #90a4ae;
-        font-weight: bold;
-        font-size: 12.5px;
-        cursor: pointer;
-      }
-      .mode-toggle button.on-x2 {
-        border-color: #e3a23c;
-        background: #fff6e8;
-        color: #a06a1a;
-      }
-      .mode-toggle button.on-x1 {
-        border-color: #90a4ae;
-        background: #f3f4f6;
-        color: #546e7a;
-      }
-      .bulk-row {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-      .bulk-row button {
-        flex: 1;
-        padding: 8px;
+      .mode-toggle button,
+      .access-toggle button {
+        padding: 7px 10px;
         border-radius: 8px;
         border: 1px solid #dfe3e6;
         background: #fbfbfc;
-        color: #546e7a;
+        color: #607085;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .mode-toggle button.on,
+      .access-toggle button.on {
+        border-color: #1f5fcc;
+        background: #edf4ff;
+        color: #164da8;
+      }
+      .bulk-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: end;
+        padding: 12px;
+        margin-bottom: 14px;
+        border: 1px solid #dce5f2;
+        background: #f7faff;
+        border-radius: 10px;
+      }
+      .bulk-field label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 11px;
+        font-weight: 800;
+        color: #607085;
+      }
+      .bulk-field select {
+        width: 100%;
+        height: 38px;
+        padding: 0 30px 0 10px;
+        border-radius: 8px;
+        border: 1px solid #dfe3e6;
+        background: #fff;
+        color: #263238;
+        font-weight: bold;
+        font-size: 12.5px;
+      }
+      .bulk-row button.bulk-apply {
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 8px;
+        border: 0;
+        background: #1f5fcc;
+        color: #fff;
         font-weight: bold;
         font-size: 12.5px;
         cursor: pointer;
+      }
+      @media (max-width: 520px) {
+        .bulk-row {
+          grid-template-columns: 1fr 1fr;
+        }
+        .bulk-row button.bulk-apply {
+          grid-column: 1 / -1;
+        }
+        .season-setting {
+          grid-template-columns: 1fr;
+          gap: 5px;
+        }
+        .setting-label {
+          padding-top: 0;
+        }
+        .season-row .sbottom {
+          align-items: flex-start;
+        }
       }
 
       /* 아코디언 */
@@ -478,20 +534,10 @@
         따로 해요.
       </div>
 
-      <div class="panel deadline-panel">
-        <h3>상점 마감</h3>
-        <p class="desc">카운트다운이 끝나도 14일 동안은 이 상점에서 계속 살 수 있어서(다음 상점과 동시 운영), 그 유예까지 더한 진짜 마감 기준이에요.</p>
-        <div id="deadlineDeriveArea"></div>
-      </div>
-
       <div id="mainArea">
         <div class="panel">
-          <h3>획득 조건</h3>
-
-          <div class="field">
-            <label>획득 경로</label>
-            <div class="toggle-row" id="pathTabs"></div>
-          </div>
+          <h3>내 보유 현황</h3>
+          <p class="desc">지금 가진 코인과 오늘부터 반영할 항목만 입력해 주세요.</p>
 
           <div class="field">
             <label>현재 보유 코인</label>
@@ -512,28 +558,36 @@
             </label>
           </div>
 
-          <button class="accordion-head" onclick="toggleInfo()" style="margin-top: 6px">
-            <h3 style="font-size: 13.5px">이 계산, 어떻게 나온 거예요?</h3>
-            <span class="accordion-arrow" id="infoArrow">▾</span>
-          </button>
-          <div id="infoBody" class="accordion-body">
-            <div class="info-box" style="margin-top: 10px; margin-bottom: 0">
-              2x 요율(소울당 7코인)은 "SSR 보너스 2주 + SR 보너스 2주" 관측치예요 — (8+8+6+6)/4 = 7,
-              게임 오픈 이후 4개월간 이 패턴이 유지됐어요. 1x는 보너스를 안 노리므로 코인이 제일 높은 SSR만
-              재배한다고 가정해서 4코인이에요.<br /><br />
-              매일 획득 상한을 다 채운다고 가정한 <b>이론 최대치</b>예요.<br /><br />
-              소울이 생기는 대로 바로 파견하는 기준이에요(쟁여두기 최적화 미반영). 만약 8점인 SSR을 모아서
-              파견하는 방식을 사용하면 예상치보다 높게 나올 수 있어요.
-            </div>
-          </div>
+        </div>
+
+        <div class="panel deadline-panel">
+          <h3>상점 마감</h3>
+          <p class="desc">카운트다운 종료 뒤 14일의 구매 유예 기간까지 포함한 실제 마감 기준이에요.</p>
+          <div id="deadlineDeriveArea"></div>
         </div>
 
         <div class="panel">
-          <h3>시즌별로 어떻게 굴릴 건가요?</h3>
-          <p class="desc">보너스 주에 맞춰 등급을 갈아타면 2x, 신경 안 쓰고 SSR만 파면 1x예요.</p>
+          <h3>시즌별 운영 계획</h3>
+          <p class="desc">시즌마다 구매할 소울 등급과 패스권 여부를 골라 주세요.</p>
           <div class="bulk-row">
-            <button onclick="setAllSeasons('x2')">전체 2x</button>
-            <button onclick="setAllSeasons('x1')">전체 1x</button>
+            <div class="bulk-field">
+              <label for="bulkMode">운영 방식</label>
+              <select id="bulkMode">
+                <option value="x2">2x SSR/SR · 시즌 소울 구매</option>
+                <option value="ssr">1x SSR</option>
+                <option value="sr">1x SR</option>
+                <option value="r">1x R</option>
+                <option value="skip">0x · 스킵</option>
+              </select>
+            </div>
+            <div class="bulk-field">
+              <label for="bulkPath">이용권</label>
+              <select id="bulkPath">
+                <option value="pass">패스권 · 30마리/일</option>
+                <option value="free">무료 · 18마리/일</option>
+              </select>
+            </div>
+            <button type="button" class="bulk-apply" onclick="applyAllSeasons()">전체 적용</button>
           </div>
           <div id="seasonListArea"></div>
         </div>
@@ -541,6 +595,20 @@
         <div class="panel">
           <h3>예상 코인</h3>
           <div id="resultsArea"></div>
+
+          <button class="accordion-head" onclick="toggleInfo()" style="margin-top: 18px">
+            <h3 style="font-size: 13.5px">계산 기준 보기</h3>
+            <span class="accordion-arrow" id="infoArrow">▾</span>
+          </button>
+          <div id="infoBody" class="accordion-body">
+            <div class="info-box" style="margin-top: 10px; margin-bottom: 0">
+              2x SSR/SR은 "SSR 보너스 2주 + SR 보너스 2주"의 시즌 평균인 소울당 7코인으로 계산해요.
+              1x는 선택한 등급에 따라 SSR 4코인, SR 3코인, R 2코인으로 계산하고, 스킵은 0코인이에요.<br /><br />
+              매일 획득 상한을 다 채운다고 가정한 <b>이론 최대치</b>예요.<br /><br />
+              소울이 생기는 대로 바로 파견하는 기준이에요(쟁여두기 최적화 미반영). 만약 8점인 SSR을 모아서
+              파견하는 방식을 사용하면 예상치보다 높게 나올 수 있어요.
+            </div>
+          </div>
         </div>
 
         <div class="panel">
@@ -610,10 +678,17 @@
       const COUNTDOWN_END_YMD = "2026-11-08"; // 게임 카운트다운 종료 (00:00 KST)
       const DEADLINE_YMD = "2026-11-22"; // = COUNTDOWN_END_YMD + GRACE_DAYS(14일)
       const DAILY_CAP = { free: 18, pass: 30 };
-      // 요율 확정치. 게임 오픈 이후 4개월간 유지된 패턴이라 편집 가능하게 두지 않는다.
-      // 2x = "SSR 보너스 2주 + SR 보너스 2주" 평균: (8+8+6+6)/4 = 7
-      // 1x = 보너스를 안 노리므로 코인이 제일 높은 SSR만 재배: 4
-      const COIN_PER_SOUL = { x2: 7, x1: 4 };
+      // 시즌 운영 방식별 소울 1마리당 코인.
+      // 2x는 SSR 보너스 2주 + SR 보너스 2주의 시즌 평균: (8+8+6+6)/4 = 7
+      const SEASON_STRATEGIES = {
+        x2: { label: "2x SSR/SR", detail: "시즌 소울 구매", perSoul: 7 },
+        ssr: { label: "1x SSR", detail: "SSR만 구매", perSoul: 4 },
+        sr: { label: "1x SR", detail: "SR만 구매", perSoul: 3 },
+        r: { label: "1x R", detail: "R만 구매", perSoul: 2 },
+        skip: { label: "0x", detail: "스킵", perSoul: 0 },
+      };
+      const STRATEGY_ORDER = ["x2", "ssr", "sr", "r", "skip"];
+      const ZODIAC_NAMES = ["처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리", "양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리"];
       const FRIEND_SOULS_PER_DAY = 4;
       const FRIEND_COIN_PER_SOUL = 4; // 등급을 알 수 없어 안전하게 잡은 평균치
       const ANCHOR_MS = ymdToKSTInstant(ANCHOR_START, 0, 0).getTime();
@@ -646,12 +721,13 @@
       const DEADLINE_MS = ymdToKSTInstant(DEADLINE_YMD, 0, 0).getTime();
 
       let state = {
-        path: localStorage.getItem("shop_path") || "pass",
         coins: Number(localStorage.getItem("shop_coins")) || 0,
         includeToday: localStorage.getItem("shop_includeToday") === "1",
         friendInclude: localStorage.getItem("shop_friendInclude") === "1",
       };
       let seasonModes = JSON.parse(localStorage.getItem("shop_seasonModes") || "{}");
+      let seasonPaths = JSON.parse(localStorage.getItem("shop_seasonPaths") || "{}");
+      const legacyPath = localStorage.getItem("shop_path") || "pass";
       let selected = JSON.parse(localStorage.getItem("shop_selected") || "[]");
       let seasonNames = {}; // /seasons에서 불러온 { startYMD: name }, 로딩 전/실패 시 빈 객체
 
@@ -679,16 +755,7 @@
       /* ==========================================================
          ③ 입력부 렌더
          ========================================================== */
-      function buildTabs() {
-        document.getElementById("pathTabs").innerHTML =
-          '<button data-p="free" onclick="setState(\'path\',\'free\')">무료 상한 18/일</button>' +
-          '<button data-p="pass" onclick="setState(\'path\',\'pass\')">패스권 상한 30/일</button>';
-      }
-
       function syncInputs() {
-        document.querySelectorAll("#pathTabs button").forEach(function (b) {
-          b.classList.toggle("on", b.dataset.p === state.path);
-        });
         document.getElementById("inCoins").value = state.coins;
         document.getElementById("inIncludeToday").checked = state.includeToday;
         document.getElementById("inFriendInclude").checked = state.friendInclude;
@@ -748,18 +815,23 @@
             : k === kLast && partial
               ? "마감이 시즌 중간"
               : "";
-          // 이름은 register.html에서 등록한 실제 이벤트명을 쓴다 (/seasons). 아직 등록 안 됐으면 "(예정)".
-          seasons.push({ k, startYMD, endYMD, name: seasonNames[startYMD] || "(예정)", days, note });
+          // 실제 등록명이 없으면 처녀자리를 기준으로 다음 별자리명을 자동으로 채운다.
+          const zodiacIndex = ((k % ZODIAC_NAMES.length) + ZODIAC_NAMES.length) % ZODIAC_NAMES.length;
+          seasons.push({ k, startYMD, endYMD, name: seasonNames[startYMD] || ZODIAC_NAMES[zodiacIndex] + "(예정)", days, note });
         }
         return seasons;
       }
 
-      function setAllSeasons(mode) {
+      function applyAllSeasons() {
+        const mode = document.getElementById("bulkMode").value;
+        const path = document.getElementById("bulkPath").value;
         const seasons = window.__lastSeasons || [];
         seasons.forEach(function (s) {
           seasonModes[s.startYMD] = mode;
+          seasonPaths[s.startYMD] = path;
         });
         localStorage.setItem("shop_seasonModes", JSON.stringify(seasonModes));
+        localStorage.setItem("shop_seasonPaths", JSON.stringify(seasonPaths));
         recalc();
       }
 
@@ -769,7 +841,23 @@
         recalc();
       }
 
-      function renderSeasonList(seasons, dailyCap) {
+      function setSeasonPath(startYMD, path) {
+        seasonPaths[startYMD] = path;
+        localStorage.setItem("shop_seasonPaths", JSON.stringify(seasonPaths));
+        recalc();
+      }
+
+      function getSeasonMode(startYMD) {
+        const saved = seasonModes[startYMD];
+        if (saved === "x1") return "ssr";
+        return SEASON_STRATEGIES[saved] ? saved : "ssr";
+      }
+
+      function getSeasonPath(startYMD) {
+        return seasonPaths[startYMD] || legacyPath;
+      }
+
+      function renderSeasonList(seasons) {
         const box = document.getElementById("seasonListArea");
         if (!seasons.length) {
           box.innerHTML = '<div class="empty-msg">마감까지 남은 기간이 없어요.</div>';
@@ -777,19 +865,28 @@
         }
         box.innerHTML = seasons
           .map(function (s) {
-            const mode = seasonModes[s.startYMD] || "x1";
-            const perSoul = COIN_PER_SOUL[mode];
+            const mode = getSeasonMode(s.startYMD);
+            const path = getSeasonPath(s.startYMD);
+            const strategy = SEASON_STRATEGIES[mode];
+            const perSoul = strategy.perSoul;
+            const dailyCap = DAILY_CAP[path];
             const coin = perSoul * dailyCap * s.days;
+            const modeButtons = STRATEGY_ORDER.map(function (key) {
+              const item = SEASON_STRATEGIES[key];
+              return `<button type="button" class="${mode === key ? "on" : ""}" aria-pressed="${mode === key}" onclick="setSeasonMode('${s.startYMD}','${key}')">${item.label}</button>`;
+            }).join("");
             return (
               '<div class="season-row">' +
               '<div class="stop"><span class="sname">' + s.name + '</span><span class="speriod">' + fmtYMDShort(s.startYMD) + "~" + fmtYMDShort(s.endYMD) + "</span></div>" +
               (s.note ? '<div class="snote">' + s.days + "일 반영 (" + s.note + ")</div>" : '<div class="snote">' + s.days + "일 반영</div>") +
+              '<div class="season-setting"><span class="setting-label">운영 방식</span><div class="mode-toggle">' + modeButtons + "</div></div>" +
+              '<div class="season-setting"><span class="setting-label">이용권</span><div class="access-toggle">' +
+              `<button type="button" class="${path === "free" ? "on" : ""}" aria-pressed="${path === "free"}" onclick="setSeasonPath('${s.startYMD}','free')">무료 · 18/일</button>` +
+              `<button type="button" class="${path === "pass" ? "on" : ""}" aria-pressed="${path === "pass"}" onclick="setSeasonPath('${s.startYMD}','pass')">패스권 · 30/일</button>` +
+              "</div></div>" +
               '<div class="sbottom">' +
-              '<span class="scoin">' + s.days + "일 × " + (perSoul * dailyCap) + " = <b>" + coin.toLocaleString() + "코인</b></span>" +
-              '<div class="mode-toggle">' +
-              '<button class="' + (mode === "x2" ? "on-x2" : "") + '" onclick="setSeasonMode(\'' + s.startYMD + "','x2')\">2x</button>" +
-              '<button class="' + (mode === "x1" ? "on-x1" : "") + '" onclick="setSeasonMode(\'' + s.startYMD + "','x1')\">1x</button>" +
-              "</div>" +
+              '<span class="scoin">' + strategy.detail + " · " + dailyCap + "마리/일 × " + perSoul + "코인</span>" +
+              '<span class="scoin"><b>' + coin.toLocaleString() + "코인</b></span>" +
               "</div>" +
               "</div>"
             );
@@ -836,18 +933,19 @@
         const deadline = new Date(DEADLINE_MS);
         if (deadline.getTime() <= now.getTime()) return;
 
-        const dailyCap = DAILY_CAP[state.path];
         const seasons = buildSeasonList(now, deadline);
         window.__lastSeasons = seasons;
-        renderSeasonList(seasons, dailyCap);
+        renderSeasonList(seasons);
 
         let totalEarned = 0;
         const breakdown = seasons.map(function (s) {
-          const mode = seasonModes[s.startYMD] || "x1";
-          const perSoul = COIN_PER_SOUL[mode];
+          const mode = getSeasonMode(s.startYMD);
+          const path = getSeasonPath(s.startYMD);
+          const perSoul = SEASON_STRATEGIES[mode].perSoul;
+          const dailyCap = DAILY_CAP[path];
           const coin = perSoul * dailyCap * s.days;
           totalEarned += coin;
-          return { name: s.name, days: s.days, mode: mode, coin: coin, startYMD: s.startYMD };
+          return { name: s.name, days: s.days, mode: mode, path: path, perSoul: perSoul, dailyCap: dailyCap, coin: coin, startYMD: s.startYMD };
         });
 
         const totalDays = seasons.reduce(function (sum, s) { return sum + s.days; }, 0);
@@ -862,13 +960,13 @@
           (friendCoin > 0 ? '<div class="result-row sub"><span>└ 친구 소울 포함 (하루 4개 × 4코인 × ' + totalDays + '일)</span><b>+' + Math.round(friendCoin).toLocaleString() + '</b></div>' : '') +
           '<div class="result-row result-total"><span>사용 가능 코인</span><b>' + Math.round(totalAvailable).toLocaleString() + '코인</b></div>' +
           breakdown.map(function (b) {
-            return '<div class="result-row sub"><span>' + b.name + " " + b.days + "일 × " + COIN_PER_SOUL[b.mode] * dailyCap + "</span><b>" + Math.round(b.coin).toLocaleString() + "</b></div>";
+            return '<div class="result-row sub"><span>' + b.name + " · " + SEASON_STRATEGIES[b.mode].label + " · " + (b.path === "pass" ? "패스" : "무료") + "</span><b>" + Math.round(b.coin).toLocaleString() + "</b></div>";
           }).join("") +
           '<div class="result-row sub" style="margin-top:6px;"><span>매일 획득 상한을 다 채웠을 때의 이론 최대치예요. 실제로는 이보다 적을 수 있어요.</span></div>' +
           "</div>";
 
         renderItemBadges(totalAvailable);
-        renderVerdict(totalAvailable, breakdown, dailyCap);
+        renderVerdict(totalAvailable, breakdown);
       }
 
       function renderItemBadges(totalAvailable) {
@@ -881,7 +979,7 @@
         });
       }
 
-      function renderVerdict(totalAvailable, breakdown, dailyCap) {
+      function renderVerdict(totalAvailable, breakdown) {
         const area = document.getElementById("verdictArea");
         if (!selected.length) {
           area.innerHTML = "";
@@ -898,18 +996,18 @@
         }
 
         const shortfall = total - totalAvailable;
-        // 1x로 잡힌 시즌 중 2x로 바꿨을 때 이득이 큰 순서로, 부족분을 메울 수 있는 최소 개수를 제안
-        const x1Seasons = breakdown
-          .filter(function (b) { return b.mode === "x1"; })
+        // 2x 미만으로 잡힌 시즌 중 2x로 바꿨을 때 이득이 큰 순서로 부족분을 메울 조합을 제안한다.
+        const upgradeableSeasons = breakdown
+          .filter(function (b) { return b.mode !== "x2"; })
           .map(function (b) {
-            return { name: b.name, gain: b.days * (COIN_PER_SOUL.x2 - COIN_PER_SOUL.x1) * dailyCap };
+            return { name: b.name, gain: b.days * (SEASON_STRATEGIES.x2.perSoul - b.perSoul) * b.dailyCap };
           })
           .sort(function (a, b) { return b.gain - a.gain; });
 
         let acc = 0, picked = [];
-        for (let i = 0; i < x1Seasons.length && acc < shortfall; i++) {
-          acc += x1Seasons[i].gain;
-          picked.push(x1Seasons[i].name);
+        for (let i = 0; i < upgradeableSeasons.length && acc < shortfall; i++) {
+          acc += upgradeableSeasons[i].gain;
+          picked.push(upgradeableSeasons[i].name);
         }
 
         let html = '<div class="verdict-box no">선택한 상품 합계 <b>' + total.toLocaleString() + "코인</b> — " + Math.round(shortfall).toLocaleString() + "코인 모자라요.";
@@ -941,7 +1039,7 @@
       /* ==========================================================
          시즌 이름 — register.html에서 등록한 실제 이벤트명 (/seasons)
          starsoul.html과 같은 백엔드지만 여기선 이름만 뽑아 쓴다.
-         실패해도 계산기는 죽지 않고 전부 "(예정)"으로 표시된다.
+         실패해도 계산기는 죽지 않고 별자리 순서에 맞춘 예정 이름을 표시한다.
          ========================================================== */
       const API_URL = "https://cozytools-backend.saeunezip.workers.dev";
       async function loadSeasonNames() {
@@ -962,8 +1060,8 @@
       /* ==========================================================
          시작
          ========================================================== */
-      buildTabs();
       syncInputs();
+      document.getElementById("bulkPath").value = legacyPath;
       wireInputs();
       buildItemList();
       renderDeadlineArea();
