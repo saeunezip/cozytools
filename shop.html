@@ -356,6 +356,18 @@
           grid-template-columns: 1fr;
           gap: 5px;
         }
+        .season-row .mode-toggle {
+          display: grid;
+          grid-template-columns: minmax(0, 1.55fr) repeat(4, minmax(0, 1fr));
+          gap: 4px;
+          width: 100%;
+        }
+        .season-row .mode-toggle button {
+          min-width: 0;
+          padding: 7px 2px;
+          font-size: 11.5px;
+          white-space: nowrap;
+        }
         .setting-label {
           padding-top: 0;
         }

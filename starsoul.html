@@ -239,6 +239,20 @@
         color: #1f3b73;
       }
 
+      @media (max-width: 480px) {
+        #gradeTabs,
+        #slotTabs {
+          flex-wrap: nowrap;
+          gap: 6px;
+        }
+        #gradeTabs button,
+        #slotTabs button {
+          min-width: 0;
+          padding-right: 5px;
+          padding-left: 5px;
+        }
+      }
+
       .field {
         margin-bottom: 12px;
       }
