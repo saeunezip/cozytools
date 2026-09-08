@@ -87,16 +87,46 @@
         color: #546e7a;
         margin-bottom: 5px;
       }
-      .field input {
+      .field input,
+      .field select {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid #dfe3e6;
         border-radius: 9px;
         font-size: 15px;
+        background: #fff;
         outline: none;
       }
-      .field input:focus {
+      .field input:focus,
+      .field select:focus {
         border-color: #1f3b73;
+      }
+      .mission-cap-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        color: #37474f;
+      }
+      .field .mission-cap-toggle input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: #1f3b73;
+      }
+      .mission-cap-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .mission-cap-controls[hidden] {
+        display: none;
+      }
+      .mission-cap-control label {
+        display: block;
       }
       .field-row {
         display: flex;
@@ -387,6 +417,15 @@
         min-height: 52px;
         padding: 5px 2px 5px 12px;
       }
+      .combo-refinement-row.unavailable {
+        border-radius: 8px;
+        background: #f7f7f8;
+        color: #90a4ae;
+      }
+      .combo-refinement-row.unavailable .combo-refinement-score::after {
+        content: " · 선택 불가";
+        color: #b0bec5;
+      }
       .combo-refinement-label {
         min-width: 0;
         font-size: 13.5px;
@@ -503,11 +542,17 @@
         cursor: not-allowed;
       }
       .combo-editor button:focus-visible,
-      .combo-editor input:focus-visible {
+      .combo-editor input:focus-visible,
+      #missionCapEnabled:focus-visible,
+      #missionCapGrade:focus-visible,
+      #missionCapRefinement:focus-visible {
         outline: 3px solid rgba(31, 59, 115, 0.28);
         outline-offset: 2px;
       }
       @media (max-width: 480px) {
+        .mission-cap-controls {
+          grid-template-columns: 1fr;
+        }
         .combo-refinement-row {
           grid-template-columns: minmax(0, 1fr) auto;
           gap: 6px;
@@ -549,6 +594,35 @@
           채우고, 모자란 만큼만 높은 등급으로 채우는 조합을 계산해요. <br />모든
           임무는 다이아로 2배 업그레이드했다고 가정합니다.
         </p>
+
+        <div class="field">
+          <label class="mission-cap-toggle" for="missionCapEnabled">
+            <input
+              type="checkbox"
+              id="missionCapEnabled"
+              onchange="handleMissionCapToggle()"
+            />
+            <span>진행 가능한 최고 임무 지정</span>
+          </label>
+          <div class="mission-cap-controls" id="missionCapControls" hidden>
+            <div class="mission-cap-control">
+              <label for="missionCapGrade">임무 등급</label>
+              <select
+                id="missionCapGrade"
+                onchange="handleMissionCapChange()"
+                disabled
+              ></select>
+            </div>
+            <div class="mission-cap-control">
+              <label for="missionCapRefinement">개량 점수</label>
+              <select
+                id="missionCapRefinement"
+                onchange="handleMissionCapChange()"
+                disabled
+              ></select>
+            </div>
+          </div>
+        </div>
 
         <div class="field">
           <label for="targetScore">목표 점수 (커트라인)</label>
@@ -693,6 +767,91 @@
           );
         });
 
+      function formatVariantLabel(variant) {
+        return (
+          variant.gradeLabel +
+          " · " +
+          REFINEMENT_LABELS[variant.level] +
+          " (" +
+          variant.score +
+          "점)"
+        );
+      }
+
+      function buildMissionCapOptions() {
+        const gradeSelect = document.getElementById("missionCapGrade");
+        GRADES.forEach(function (grade) {
+          const option = document.createElement("option");
+          option.value = grade.key;
+          option.textContent = grade.label;
+          gradeSelect.appendChild(option);
+        });
+        gradeSelect.value = "URP";
+
+        const refinementSelect = document.getElementById(
+          "missionCapRefinement",
+        );
+        REFINEMENT_LABELS.forEach(function (label, level) {
+          const option = document.createElement("option");
+          option.value = String(level);
+          option.textContent = label;
+          refinementSelect.appendChild(option);
+        });
+        refinementSelect.value = String(MAX_UPGRADE_LEVEL);
+      }
+
+      function getSelectedMissionCap() {
+        const isLimited = document.getElementById("missionCapEnabled").checked;
+        if (!isLimited) {
+          return {
+            isLimited: false,
+            variant: RECOMMENDATION_VARIANTS[RECOMMENDATION_VARIANTS.length - 1],
+          };
+        }
+        const gradeKey = document.getElementById("missionCapGrade").value;
+        const level = Number(
+          document.getElementById("missionCapRefinement").value,
+        );
+        const variant = COMBO_VARIANTS.find(function (candidate) {
+          return (
+            candidate.gradeKey === gradeKey && candidate.level === level
+          );
+        });
+        return {
+          isLimited: true,
+          variant: variant,
+        };
+      }
+
+      function handleMissionCapToggle() {
+        const enabled = document.getElementById("missionCapEnabled").checked;
+        const controls = document.getElementById("missionCapControls");
+        controls.hidden = !enabled;
+        document.getElementById("missionCapGrade").disabled = !enabled;
+        document.getElementById("missionCapRefinement").disabled = !enabled;
+        if (comboEditorState) calcCombo();
+      }
+
+      function getRecommendationVariants(cap) {
+        if (!cap.isLimited) return RECOMMENDATION_VARIANTS;
+        const candidates = COMBO_VARIANTS.filter(function (variant) {
+          return variant.level === 0 && variant.score <= cap.variant.score;
+        });
+        if (cap.variant.level > 0) candidates.push(cap.variant);
+        return candidates.sort(function (a, b) {
+          return (
+            a.score - b.score ||
+            a.baseScore - b.baseScore ||
+            a.gradeIndex - b.gradeIndex ||
+            a.level - b.level
+          );
+        });
+      }
+
+      function handleMissionCapChange() {
+        if (comboEditorState) calcCombo();
+      }
+
       let comboEditorState = null;
       let comboEditorOpen = false;
       let comboGradeOpen = {};
@@ -718,13 +877,13 @@
         counts[variant.gradeKey][variant.level] = count;
       }
 
-      function calculateRecommendation(need, remaining) {
+      function calculateRecommendation(need, remaining, candidates) {
         const counts = createEmptyComboCounts();
         if (need <= 0 || remaining <= 0) return counts;
 
-        const lowest = RECOMMENDATION_VARIANTS[0];
-        const highest =
-          RECOMMENDATION_VARIANTS[RECOMMENDATION_VARIANTS.length - 1];
+        const variants = candidates || RECOMMENDATION_VARIANTS;
+        const lowest = variants[0];
+        const highest = variants[variants.length - 1];
 
         if (need > highest.score * remaining) {
           setRecommendedCount(counts, highest, remaining);
@@ -739,22 +898,22 @@
 
         const averageNeeded = need / remaining;
         let lowIndex = 0;
-        for (let i = 0; i < RECOMMENDATION_VARIANTS.length; i++) {
-          if (RECOMMENDATION_VARIANTS[i].score <= averageNeeded) {
+        for (let i = 0; i < variants.length; i++) {
+          if (variants[i].score <= averageNeeded) {
             lowIndex = i;
           }
         }
 
-        const low = RECOMMENDATION_VARIANTS[lowIndex];
+        const low = variants[lowIndex];
         if (
           low.score * remaining >= need ||
-          lowIndex === RECOMMENDATION_VARIANTS.length - 1
+          lowIndex === variants.length - 1
         ) {
           setRecommendedCount(counts, low, remaining);
           return counts;
         }
 
-        const high = RECOMMENDATION_VARIANTS[lowIndex + 1];
+        const high = variants[lowIndex + 1];
         const highCount = Math.min(
           remaining,
           Math.max(
@@ -803,16 +962,25 @@
         }
 
         const need = target - current;
-        const highestScore =
-          RECOMMENDATION_VARIANTS[RECOMMENDATION_VARIANTS.length - 1].score;
+        const cap = getSelectedMissionCap();
+        const recommendationVariants = getRecommendationVariants(cap);
+        const highestVariant =
+          recommendationVariants[recommendationVariants.length - 1];
+        const highestScore = highestVariant.score;
         const maxPlannedScore = highestScore * remaining;
-        const recommendation = calculateRecommendation(need, remaining);
+        const recommendation = calculateRecommendation(
+          need,
+          remaining,
+          recommendationVariants,
+        );
 
         comboEditorState = {
           target: target,
           current: current,
           remaining: remaining,
           need: need,
+          capScore: highestScore,
+          highestVariant: highestVariant,
           maxPlannedScore: maxPlannedScore,
           isAchieved: need <= 0,
           isImpossible: need > maxPlannedScore,
@@ -832,8 +1000,11 @@
         const gradeGroups = GRADES.map(function (grade) {
           const refinementRows = REFINEMENT_LABELS.map(function (label, level) {
             const score = grade.score * UPGRADE_MULT + level;
+            const unavailable = score > comboEditorState.capScore;
             return (
-              '<div class="combo-refinement-row">' +
+              '<div class="combo-refinement-row' +
+              (unavailable ? " unavailable" : "") +
+              '">' +
               '<div class="combo-refinement-label">' +
               label +
               '<span class="combo-refinement-score" id="comboScore-' +
@@ -873,7 +1044,9 @@
               grade.key +
               "-" +
               level +
-              '">' +
+              '"' +
+              (unavailable ? " disabled" : "") +
+              ">" +
               '<button type="button" id="comboPlus-' +
               grade.key +
               "-" +
@@ -942,6 +1115,23 @@
         );
       }
 
+      function buildImpossibleMessage(state) {
+        const maximumProjected = state.current + state.maxPlannedScore;
+        return (
+          '<div class="combo-case-message impossible"><b>선택한 최고 임무로는 목표 달성이 불가능합니다.</b> ' +
+          formatVariantLabel(state.highestVariant) +
+          "을(를) 1회 진행하면 " +
+          state.highestVariant.score +
+          "점이며, 남은 횟수를 모두 사용해도 추가 최대 " +
+          state.maxPlannedScore +
+          "점, 예상 " +
+          maximumProjected +
+          "점으로, 목표까지 " +
+          (state.target - maximumProjected) +
+          "점 부족합니다. 편집기는 이 최대 가능 조합으로 시작합니다.</div>"
+        );
+      }
+
       function renderComboResult() {
         const state = comboEditorState;
         const box = document.getElementById("comboResult");
@@ -951,13 +1141,7 @@
           caseMessage =
             '<div class="combo-case-message achieved"><b>이미 목표를 달성했습니다.</b> 현재 점수가 목표 이상이라 추가 임무는 필요하지 않아요. 편집기는 0회 조합으로 시작합니다.</div>';
         } else if (state.isImpossible) {
-          const maximumProjected = state.current + state.maxPlannedScore;
-          caseMessage =
-            '<div class="combo-case-message impossible"><b>남은 횟수로는 목표 달성이 불가능합니다.</b> 전부 UR+ · 개량 +4로 진행해도 예상 ' +
-            maximumProjected +
-            "점으로, 목표까지 " +
-            (state.target - maximumProjected) +
-            "점 부족합니다. 편집기는 이 최대 가능 조합으로 시작합니다.</div>";
+          caseMessage = buildImpossibleMessage(state);
         }
 
         box.innerHTML =
@@ -1198,19 +1382,23 @@
 
         GRADES.forEach(function (grade) {
           state.counts[grade.key].forEach(function (count, level) {
+            const unavailable =
+              grade.score * UPGRADE_MULT + level > state.capScore;
             const otherAttempts = metrics.totalAttempts - count;
             const maxForInput = Math.max(0, state.remaining - otherAttempts);
             const input = document.getElementById(
               "comboCount-" + grade.key + "-" + level,
             );
             input.value = String(count);
-            input.max = String(maxForInput);
+            input.max = String(unavailable ? 0 : maxForInput);
+            input.disabled = unavailable;
             document.getElementById(
               "comboMinus-" + grade.key + "-" + level,
-            ).disabled = count <= 0;
+            ).disabled = unavailable || count <= 0;
             document.getElementById(
               "comboPlus-" + grade.key + "-" + level,
-            ).disabled = metrics.totalAttempts >= state.remaining;
+            ).disabled =
+              unavailable || metrics.totalAttempts >= state.remaining;
           });
         });
 
@@ -1253,6 +1441,12 @@
 
       function adjustComboCount(key, level, delta) {
         if (!comboEditorState) return;
+        const grade = GRADES.find(function (candidate) {
+          return candidate.key === key;
+        });
+        if (grade.score * UPGRADE_MULT + level > comboEditorState.capScore) {
+          return;
+        }
         const metrics = getComboMetrics(comboEditorState.counts);
         const currentCount = comboEditorState.counts[key][level];
         if (delta > 0 && metrics.totalAttempts >= comboEditorState.remaining) {
@@ -1267,6 +1461,14 @@
 
       function setComboCountFromInput(key, level, rawValue) {
         if (!comboEditorState) return;
+        const grade = GRADES.find(function (candidate) {
+          return candidate.key === key;
+        });
+        if (grade.score * UPGRADE_MULT + level > comboEditorState.capScore) {
+          comboEditorState.counts[key][level] = 0;
+          renderComboState();
+          return;
+        }
         const metrics = getComboMetrics(comboEditorState.counts);
         const currentCount = comboEditorState.counts[key][level];
         const available = Math.max(
@@ -1403,6 +1605,7 @@
       }
 
       /* ---------- 시작 ---------- */
+      buildMissionCapOptions();
       buildGradeList();
     </script>
   </body>
