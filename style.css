@@ -1219,7 +1219,8 @@ table.timeline th {
 /* ==========================================================================
    index.html — editorial playbook
    ========================================================================== */
-.home-page {
+.home-page,
+.content-page {
   --home-paper: #f2f6fa;
   --home-ink: #101722;
   --home-muted: #647181;
@@ -1234,8 +1235,14 @@ table.timeline th {
   color: var(--home-ink);
   font-family: var(--font-heading);
 }
-.home-page a {
+.home-page a,
+.content-page a {
   color: inherit;
+}
+.home-page a:focus-visible,
+.content-page a:focus-visible {
+  outline: 3px solid var(--home-blue);
+  outline-offset: 4px;
 }
 .home-header {
   display: grid;
@@ -1494,6 +1501,137 @@ table.timeline th {
 .home-tool-arrow {
   font-size: 20px;
 }
+.home-info {
+  margin-top: 54px;
+  border-top: 1px solid var(--home-line);
+}
+.home-info-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 56px;
+}
+.home-info-heading > span {
+  color: var(--home-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.home-info-heading h2 {
+  margin: 0;
+  color: var(--home-ink);
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.home-info-list {
+  border-bottom: 1px solid var(--home-ink);
+}
+.home-info-link {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  border-top: 1px solid var(--home-line);
+  color: var(--home-ink);
+  text-decoration: none;
+}
+.home-info-link:hover,
+.home-info-link:focus-visible {
+  color: var(--home-blue);
+}
+.home-info-number,
+.home-info-date {
+  color: var(--home-muted);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.home-info-link strong {
+  min-width: 0;
+  font-size: 15px;
+}
+.home-info-arrow {
+  font-size: 17px;
+  text-align: right;
+}
+.home-related {
+  padding: 28px max(28px, calc((100vw - 1124px) / 2));
+  border-top: 1px solid var(--home-line);
+  background: #e7edf4;
+}
+.home-related-inner {
+  max-width: 1124px;
+  margin: 0 auto;
+}
+.home-related h2 {
+  margin: 0 0 12px;
+  color: var(--home-ink);
+  font-size: 14px;
+}
+.home-related-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.home-related-link {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px solid var(--home-line);
+  background: rgba(255, 255, 255, 0.56);
+  color: var(--home-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.home-related-link > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.home-related-link:hover,
+.home-related-link:focus-visible {
+  border-color: var(--home-blue);
+  color: var(--home-blue);
+}
+.home-related-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--home-line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--home-blue);
+}
+.home-related-icon.is-naver {
+  border-color: #03c75a;
+  color: #03c75a;
+  font-family: Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+}
+.home-related-icon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+.home-related-icon img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
 .home-footer {
   display: flex;
   align-items: center;
@@ -1519,6 +1657,150 @@ table.timeline th {
   color: #fff;
   font-weight: 700;
   text-underline-offset: 4px;
+}
+
+/* ==========================================================================
+   guide.html / updates.html — editorial content shell
+   ========================================================================== */
+.content-page {
+  min-height: 100vh;
+}
+.content-back {
+  justify-self: end;
+  color: var(--home-blue) !important;
+  font-size: 13px;
+  font-weight: 800;
+  text-underline-offset: 4px;
+}
+.content-main {
+  width: min(820px, 100%);
+  margin: 0 auto;
+  padding: 64px 28px 84px;
+}
+.content-intro {
+  padding-bottom: 28px;
+  border-bottom: 2px solid var(--home-ink);
+}
+.content-eyebrow {
+  color: var(--home-blue);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+.content-intro h1 {
+  margin: 10px 0 8px;
+  color: var(--home-ink);
+  font-size: clamp(36px, 7vw, 54px);
+  line-height: 1.1;
+  letter-spacing: -0.055em;
+}
+.content-intro p {
+  margin: 0;
+  color: var(--home-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.guide-empty {
+  display: flex;
+  min-height: 380px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  border-bottom: 1px solid var(--home-line);
+  text-align: center;
+}
+.guide-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 22px;
+  border: 1px solid var(--home-line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--home-blue);
+}
+.guide-empty-icon svg {
+  width: 29px;
+  height: 29px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+.guide-empty-kicker {
+  margin: 0 0 8px;
+  color: var(--home-blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+.guide-empty h2 {
+  margin: 0;
+  color: var(--home-ink);
+  font-size: 24px;
+  letter-spacing: -0.035em;
+}
+.guide-empty > p:not(.guide-empty-kicker) {
+  max-width: 430px;
+  margin: 12px 0 24px;
+  color: var(--home-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.content-primary-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 17px;
+  background: var(--home-blue);
+  color: #fff !important;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.content-primary-link:hover {
+  background: #0d41c9;
+}
+.update-list {
+  margin: 38px 0 0;
+  padding: 0;
+  border-top: 2px solid var(--home-ink);
+  list-style: none;
+}
+.update-item {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 28px;
+  padding: 30px 0 34px;
+  border-bottom: 1px solid var(--home-line);
+}
+.update-item time {
+  color: var(--home-blue);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.update-item article {
+  min-width: 0;
+}
+.update-item h2 {
+  margin: -3px 0 11px;
+  color: var(--home-ink);
+  font-size: 22px;
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+}
+.update-item p {
+  margin: 0;
+  color: var(--home-muted);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.85;
+  word-break: keep-all;
 }
 
 @media (max-width: 760px) {
@@ -1599,6 +1881,25 @@ table.timeline th {
   .home-tool-copy small {
     font-size: 12px;
   }
+  .home-info {
+    margin-top: 40px;
+  }
+  .home-related {
+    padding: 24px 18px;
+  }
+  .home-related-list {
+    gap: 8px;
+  }
+  .home-related-link {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+  .home-related-icon {
+    width: 28px;
+    height: 28px;
+  }
   .home-footer,
   .home-footer > div {
     align-items: flex-start;
@@ -1606,6 +1907,29 @@ table.timeline th {
   }
   .home-footer {
     padding: 22px 18px;
+  }
+  .content-main {
+    padding: 44px 18px 64px;
+  }
+  .content-intro {
+    padding-bottom: 22px;
+  }
+  .guide-empty {
+    min-height: 340px;
+    padding-right: 0;
+    padding-left: 0;
+  }
+  .update-list {
+    margin-top: 30px;
+  }
+  .update-item {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 25px 0 29px;
+  }
+  .update-item h2 {
+    margin-top: 0;
+    font-size: 20px;
   }
 }
 
@@ -1632,5 +1956,23 @@ table.timeline th {
   }
   .home-tool-copy small {
     display: none;
+  }
+  .home-info-link {
+    grid-template-columns: 28px minmax(0, 1fr) auto 16px;
+    gap: 9px;
+  }
+  .home-info-date {
+    font-size: 11px;
+  }
+  .home-related-link {
+    min-height: 58px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+  .content-intro h1 {
+    font-size: 34px;
+  }
+  .guide-empty h2 {
+    font-size: 21px;
   }
 }
