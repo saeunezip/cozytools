@@ -87,7 +87,7 @@
         color: #546e7a;
         margin-bottom: 5px;
       }
-      .field input,
+      .field input:not([type="checkbox"]),
       .field select {
         width: 100%;
         padding: 10px 12px;
@@ -97,22 +97,31 @@
         background: #fff;
         outline: none;
       }
-      .field input:focus,
+      .field input:not([type="checkbox"]):focus,
       .field select:focus {
         border-color: #1f3b73;
       }
       .mission-cap-toggle {
-        display: inline-flex;
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr);
         align-items: center;
-        gap: 9px;
+        gap: 10px;
+        width: 100%;
+        min-height: 44px;
+        margin: 0;
+        padding: 8px 2px;
         cursor: pointer;
         font-size: 14px;
         font-weight: bold;
+        line-height: 1.4;
         color: #37474f;
       }
       .field .mission-cap-toggle input {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
         margin: 0;
         accent-color: #1f3b73;
       }
@@ -127,6 +136,10 @@
       }
       .mission-cap-control label {
         display: block;
+      }
+      .mission-cap-control,
+      .mission-cap-control select {
+        min-width: 0;
       }
       .field-row {
         display: flex;
@@ -339,6 +352,13 @@
       .combo-editor .accordion-head {
         min-height: 44px;
       }
+      .combo-editor {
+        margin: 8px 0 12px;
+        padding: 10px 12px;
+        border: 1px solid #dce3f0;
+        border-radius: 10px;
+        background: #fff;
+      }
       .combo-editor-title {
         display: block;
         color: #152c57;
@@ -396,11 +416,14 @@
       }
       .combo-grade-arrow {
         color: #1f3b73;
-        font-size: 12px;
+        font-size: 24px;
+        line-height: 1;
         transition: transform 0.15s;
+        transform: rotate(0deg);
+        transform-origin: center;
       }
       .combo-grade-arrow.open {
-        transform: rotate(180deg);
+        transform: rotate(90deg);
       }
       .combo-refinement-list {
         display: none;
@@ -551,7 +574,8 @@
       }
       @media (max-width: 480px) {
         .mission-cap-controls {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
         }
         .combo-refinement-row {
           grid-template-columns: minmax(0, 1fr) auto;
@@ -590,7 +614,7 @@
       <div class="panel">
         <h3>목표까지 몇 번, 어떤 등급으로?</h3>
         <p class="desc">
-          목표 점수와 지금 점수, 남은 임무 횟수를 넣으면 최대한 낮은 등급부터
+          목표 점수와 지금 점수, 현재 진행한 임무 횟수를 넣으면 최대한 낮은 등급부터
           채우고, 모자란 만큼만 높은 등급으로 채우는 조합을 계산해요. <br />모든
           임무는 다이아로 2배 업그레이드했다고 가정합니다.
         </p>
@@ -648,11 +672,11 @@
             />
           </div>
           <div class="field">
-            <label for="remainingCount">남은 임무 횟수</label>
+            <label for="completedCount">현재 진행한 임무 횟수</label>
             <input
               type="number"
-              id="remainingCount"
-              value="24"
+              id="completedCount"
+              value="0"
               inputmode="numeric"
               min="0"
               step="1"
@@ -731,6 +755,7 @@
       ]; // 점수 오름차순으로 정렬돼 있어야 조합 계산이 맞습니다.
       const REFRESH_COST = 2; // 일반 새로고침 다이아 비용
       const UPGRADE_MULT = 2; // 목표 조합 계산은 모든 임무를 업그레이드한다고 가정
+      const TOTAL_MISSION_COUNT = 24;
       const MAX_UPGRADE_LEVEL = 4; // 개량 최대 단계 (게임이 바뀌면 여기만 고치세요)
       const REFINEMENT_LABELS = Array.from(
         { length: MAX_UPGRADE_LEVEL + 1 },
@@ -877,6 +902,18 @@
         counts[variant.gradeKey][variant.level] = count;
       }
 
+      function setRecommendedGradeExpansions(recommendation, syncDom) {
+        comboGradeOpen = {};
+        GRADES.forEach(function (grade) {
+          comboGradeOpen[grade.key] = recommendation[grade.key].some(function (
+            count,
+          ) {
+            return count > 0;
+          });
+          if (syncDom) syncComboGradeOpen(grade.key);
+        });
+      }
+
       function calculateRecommendation(need, remaining, candidates) {
         const counts = createEmptyComboCounts();
         if (need <= 0 || remaining <= 0) return counts;
@@ -937,12 +974,12 @@
       function calcCombo() {
         const targetRaw = document.getElementById("targetScore").value.trim();
         const currentRaw = document.getElementById("currentScore").value.trim();
-        const remainingRaw = document
-          .getElementById("remainingCount")
+        const completedRaw = document
+          .getElementById("completedCount")
           .value.trim();
         const target = Number(targetRaw);
         const current = currentRaw === "" ? 0 : Number(currentRaw);
-        const remaining = Number(remainingRaw);
+        const completed = Number(completedRaw);
 
         if (!Number.isSafeInteger(target) || target <= 0) {
           showComboError("목표 점수를 1 이상의 정수로 입력해 주세요.");
@@ -952,15 +989,24 @@
           showComboError("지금 내 점수를 0 이상의 정수로 입력해 주세요.");
           return;
         }
-        if (remainingRaw === "") {
-          showComboError("남은 임무 횟수를 입력해 주세요.");
+        if (completedRaw === "") {
+          showComboError("현재 진행한 임무 횟수를 입력해 주세요.");
           return;
         }
-        if (!Number.isSafeInteger(remaining) || remaining < 0) {
-          showComboError("남은 임무 횟수를 0 이상의 정수로 입력해 주세요.");
+        if (
+          !Number.isSafeInteger(completed) ||
+          completed < 0 ||
+          completed > TOTAL_MISSION_COUNT
+        ) {
+          showComboError(
+            "현재 진행한 임무 횟수를 0 이상 " +
+              TOTAL_MISSION_COUNT +
+              " 이하의 정수로 입력해 주세요.",
+          );
           return;
         }
 
+        const remaining = TOTAL_MISSION_COUNT - completed;
         const need = target - current;
         const cap = getSelectedMissionCap();
         const recommendationVariants = getRecommendationVariants(cap);
@@ -988,16 +1034,14 @@
           counts: cloneComboCounts(recommendation),
         };
         comboEditorOpen = false;
-        comboGradeOpen = {};
-        GRADES.forEach(function (grade) {
-          comboGradeOpen[grade.key] = false;
-        });
+        setRecommendedGradeExpansions(recommendation, false);
 
         renderComboResult();
       }
 
       function buildComboEditorMarkup() {
         const gradeGroups = GRADES.map(function (grade) {
+          const isOpen = Boolean(comboGradeOpen[grade.key]);
           const refinementRows = REFINEMENT_LABELS.map(function (label, level) {
             const score = grade.score * UPGRADE_MULT + level;
             const unavailable = score > comboEditorState.capScore;
@@ -1070,7 +1114,9 @@
             grade.key +
             '" data-combo-grade-toggle="' +
             grade.key +
-            '" aria-expanded="false" aria-controls="comboGradeRows-' +
+            '" aria-expanded="' +
+            isOpen +
+            '" aria-controls="comboGradeRows-' +
             grade.key +
             '">' +
             '<span class="combo-grade-name">' +
@@ -1079,25 +1125,30 @@
             '<span class="combo-grade-summary" id="comboGradeSummary-' +
             grade.key +
             '">총 0회 · 0점</span>' +
-            '<span class="combo-grade-arrow" id="comboGradeArrow-' +
+            '<span class="combo-grade-arrow' +
+            (isOpen ? " open" : "") +
+            '" id="comboGradeArrow-' +
             grade.key +
-            '" aria-hidden="true">▾</span>' +
+            '" aria-hidden="true">›</span>' +
             "</button>" +
-            '<div class="combo-refinement-list" id="comboGradeRows-' +
+            '<div id="comboGradeRows-' +
             grade.key +
             '" role="region" aria-labelledby="comboGradeHead-' +
             grade.key +
-            '" hidden>' +
+            '"' +
+            (isOpen
+              ? ' class="combo-refinement-list open">'
+              : ' class="combo-refinement-list" hidden>') +
             refinementRows +
             "</div></div>"
           );
         }).join("");
 
         return (
-          '<div class="result-box combo-editor" style="margin-top:10px;">' +
+          '<div class="combo-editor">' +
           '<button type="button" class="accordion-head" id="comboEditorHead" aria-expanded="false" aria-controls="comboEditorBody">' +
           '<span class="combo-editor-head-copy">' +
-          '<span class="combo-editor-title">추천 조합 직접 다듬기</span>' +
+          '<span class="combo-editor-title">조합 직접 다듬기</span>' +
           '<span class="combo-editor-summary" id="comboEditorSummary"></span>' +
           "</span>" +
           '<span class="accordion-arrow" id="comboEditorArrow" aria-hidden="true">▾</span>' +
@@ -1146,9 +1197,10 @@
 
         box.innerHTML =
           caseMessage +
-          '<div class="result-box" id="comboPlanResult"></div>' +
-          '<div class="result-box" id="comboCostResult" style="margin-top:10px;"></div>' +
+          '<div class="result-box"><div class="result-title" id="comboPlanTitle"></div>' +
           buildComboEditorMarkup() +
+          '<div id="comboPlanResult"></div></div>' +
+          '<div class="result-box" id="comboCostResult" style="margin-top:10px;"></div>' +
           '<p class="note">이 등급들을 새로고침으로 맞추려면 다이아가 얼마나 드는지는 아래에서 등급을 체크해 확인해보세요.</p>';
 
         wireComboEditor();
@@ -1214,6 +1266,10 @@
 
       function toggleComboGrade(key) {
         comboGradeOpen[key] = !comboGradeOpen[key];
+        syncComboGradeOpen(key);
+      }
+
+      function syncComboGradeOpen(key) {
         const head = document.getElementById("comboGradeHead-" + key);
         const rows = document.getElementById("comboGradeRows-" + key);
         head.setAttribute("aria-expanded", String(comboGradeOpen[key]));
@@ -1314,14 +1370,14 @@
           planRows = '<div class="result-empty">선택한 임무가 없습니다.</div>';
         }
 
-        document.getElementById("comboPlanResult").innerHTML =
-          '<div class="result-title">' +
+        document.getElementById("comboPlanTitle").textContent =
           planTitle +
           " (남은 " +
           state.remaining +
           "회 중 " +
           metrics.totalAttempts +
-          "회 사용)</div>" +
+          "회 사용)";
+        document.getElementById("comboPlanResult").innerHTML =
           '<div class="result-row"><span>목표까지 필요</span><b>' +
           Math.max(0, state.need) +
           "점</b></div>" +
@@ -1427,6 +1483,9 @@
           " = " +
           projected +
           "점</b></div>" +
+          '<div class="result-row"><span>임무 레벨업 비용</span><b>' +
+          metrics.upgradeCost +
+          "다이아</b></div>" +
           '<div class="combo-verdict ' +
           verdictClass +
           '">' +
@@ -1487,6 +1546,7 @@
         comboEditorState.counts = cloneComboCounts(
           comboEditorState.recommendation,
         );
+        setRecommendedGradeExpansions(comboEditorState.recommendation, true);
         renderComboState();
       }
 
@@ -1605,6 +1665,9 @@
       }
 
       /* ---------- 시작 ---------- */
+      document.getElementById("completedCount").max = String(
+        TOTAL_MISSION_COUNT,
+      );
       buildMissionCapOptions();
       buildGradeList();
     </script>
