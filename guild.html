@@ -55,22 +55,34 @@
         cursor: pointer;
       }
 
-      .panel {
-        background: #fff;
-        border-radius: 14px;
-        padding: 36px 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      .guild-posters {
+        display: grid;
+        gap: 20px;
+      }
+      .guild-posters img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .guild-privacy-note {
+        margin: 12px 0 0;
+        color: #586574;
+        font-size: 13px;
+        line-height: 1.7;
         text-align: center;
       }
-      .panel p {
-        font-size: 15px;
-        line-height: 1.9;
-        margin: 0;
-        color: #37474f;
+      .guild-contact {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--ed-line-strong, #152c57);
+        text-align: left;
       }
-      .panel a {
-        color: #1f3b73;
-        font-weight: bold;
+      .guild-contact p {
+        margin: 0 0 20px;
+        font-size: clamp(20px, 4vw, 26px);
+        font-weight: 700;
+        line-height: 1.6;
+        word-break: keep-all;
       }
     </style>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -86,12 +98,15 @@
         <h1 class="title">길드 홍보지</h1>
       </div>
 
-      <div class="panel guild-notice">
-        <p class="guild-kicker">NOTICE / GUILD</p>
-        <h2>홍보지를 준비하고 있어요.</h2>
-        <p class="desc">가입 신청이나 길드 관련 문의는 오픈채팅으로 편하게 남겨주세요.</p>
-        <a class="guild-cta" href="https://open.kakao.com/me/cozysaeu" target="_blank" rel="noopener noreferrer">오픈채팅으로 문의 ↗</a>
+      <div class="guild-posters">
+        <img src="images/guild/baekya-recruitment.png" width="1080" height="1350" alt="백야 길드원 모집 홍보지: 가입 조건, 길드전 운영, 길드 혜택 및 가입 문의" />
+        <img src="images/guild/baekya-guild-web.png" width="1024" height="1536" alt="백야 길드웹 소개: 임무 추천, 새로고침 금지 꽃 및 접속 시간 연결" />
       </div>
+      <p class="guild-privacy-note">길드원의 개인정보 보호를 위해 페이지 예시는 ai로 재구성하였습니다.</p>
+      <section class="guild-contact" aria-label="길드 가입 문의">
+        <p>가입 신청이나 길드 관련 문의는 오픈채팅으로 편하게 남겨주세요.</p>
+        <a class="guild-cta" href="https://open.kakao.com/me/cozysaeu" target="_blank" rel="noopener noreferrer">오픈채팅으로 문의 ↗</a>
+      </section>
     </div>
   </body>
 </html>
